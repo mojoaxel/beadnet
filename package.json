@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "default-options": "^1.0.0",
-    "loglevel": "^1.6.1"
+    "loglevel": "^1.6.1",
+    "random-id": "0.0.2"
   }
 }

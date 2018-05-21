@@ -1,5 +1,6 @@
 import log from 'loglevel';
 import dopts from 'default-options';
+import randomID from 'random-id';
 
 log.enableAll();
 log.setLevel("TRACE");
@@ -10,8 +11,10 @@ class BeatNet {
 		/* Merge default option with user given options 
 		* To make a parameter required set it to "undefined" in the defaults.
 		*/
-		this.options = dopts(options, {
+		this.opt = dopts(options, {
 			
+			colorScheme: d3.scaleOrdinal(d3.schemeCategory10),
+
 			container: {
 				parent: 'body',
 				width: null,
@@ -20,23 +23,27 @@ class BeatNet {
 
 			nodes: {
 				strokeWidth: 3,
-				color: '#999'
+				color: null,
+				radius: 20
 			}
 		});
-		log.debug("initializing beadnet with options: ", this.options);
+
+		this.opt.nodes.color = this.opt.nodes.color || this.opt.colorScheme(0);
+
+		log.debug("initializing beadnet with options: ", this.opt);
 	}
 
 	/**
-	 * Create the main SVG root inside the container defined by the "options.container.parent" selector.
+	 * Create the main SVG root inside the container defined by the "opt.container.parent" selector.
 	 * @param {*} width
 	 * @param {*} height
 	 */
 	createSVG() {
-		let parentD3 = d3.select(this.options.container.parent);
+		let parentD3 = d3.select(this.opt.container.parent);
 		let parentRect = parentD3.node().getBoundingClientRect();
-		const width = this.options.container.width || parentRect.width;
-		const height = this.options.container.height || parentRect.height;
-		log.trace(`createSVG: width: ${parentRect.width}, height: ${parentRect.height}`);
+		const width = this.opt.container.width || parentRect.width;
+		const height = this.opt.container.height || parentRect.height;
+		log.debug(`createSVG: width: ${parentRect.width}, height: ${parentRect.height}`);
 
 		/* make sure size is valid */
 		if (!width || !height) {
@@ -50,6 +57,24 @@ class BeatNet {
 			.attr("height", parentRect.height);
 
 		return this._svg;
+	}
+
+	createNode({ id = randomID(), x = null, y = null0 }) {
+		log.debug(`createNode: id:${id}, x:${x}, y:${y}`);
+		this._svg
+			.selectAll(".point")
+			.data(arguments)
+			.enter()
+				.append("circle")
+					.style("stroke-width", this.opt.nodes.strokeWidth)
+					.style("fill", this.opt.nodes.color )
+					.attr("r", this.opt.nodes.radius)
+					.attr("transform", function(d) { return "translate(" + [x, y] + ")"; });
+	}
+
+	createNodes(nodes) {
+		log.debug(`createNodes: ${nodes}`);
+		nodes.forEach(node => this.createNode(node));
 	}
 }
 

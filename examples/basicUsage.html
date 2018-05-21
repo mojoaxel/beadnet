@@ -38,8 +38,7 @@ var points = [
   [600, 100]
 ];
 
-var nodes, 
-    paths = [], 
+var paths = [], 
     beads = [];
 
 var colors = d3.scaleOrdinal(d3.schemeCategory10);
@@ -60,17 +59,7 @@ const ANIMATIN_DURATION = 1000;
 const ANIMATIN_DELAY = ANIMATIN_DURATION*0.25;
 
 const SPACING = 2*BEAD_RADIUS+BEAD_SPACING;
-const FIRST_POSITION = NODE_RADIUS+BEAD_RADIUS+BEAD_SPACING;
-
-function createNodes(points) {
-  svg.selectAll(".point")
-      .data(points)
-    .enter().append("circle")
-      .style("stroke-width", NODE_STROKE_WIDTH)
-      .style("fill", NODE_FILL_COLOR )
-      .attr("r", NODE_RADIUS)
-      .attr("transform", function(d) { return "translate(" + d + ")"; });
-}  
+const FIRST_POSITION = NODE_RADIUS+BEAD_RADIUS+BEAD_SPACING; 
 
 function createPath(points) {
   return svg.append("path")
@@ -148,7 +137,39 @@ function translateAlongPath(path, beadCount, beadIndex) {
   };
 }
 
-nodes = createNodes(points);
+var nodes = [{
+  id: 'Alice',
+  x: 100,
+  y: 200
+}, {
+  id: 'Hub1',
+  x: 250,
+  y: 100
+}, {
+  id: 'Hub2',
+  x: 450,
+  y: 300
+}, {
+  id: 'Bob',
+  x: 600,
+  y: 100
+}];
+
+var links = [{
+  source: 'Alice',
+  destination: 'Hub1'
+}, {
+  source: 'Hub1',
+  destination: 'Hub2'
+}, {
+  source: 'Hub2',
+  destination: 'Bob'
+}, {
+  source: 'Hub1',
+  destination: 'Bob'
+}];
+
+BN.createNodes(nodes);
 
 paths.push(createPath([points[0],points[1]]));
 paths.push(createPath([points[1],points[2]]));
