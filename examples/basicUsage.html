@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #beadnet {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+<div id="beadnet"></div>
+
+<script src="//d3js.org/d3.v4.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/async/2.6.0/async.min.js"></script>
+
+<script src="../dist/beadnet.standalone.min.js"></script>
+<script>
+
+var BN = new beadnet({
+  container: {
+    parent: '#beadnet'
+  }
+});
+
+var svg = BN.createSVG();
+
+var points = [
+  [100, 200],
+  [250, 100],
+  [450, 300],
+  [600, 100]
+];
+
+var nodes, 
+    paths = [], 
+    beads = [];
+
+var colors = d3.scaleOrdinal(d3.schemeCategory10);
+
+const NODE_RADIUS = 20;
+const NODE_STROKE_WIDTH = 0;
+const NODE_FILL_COLOR = colors(0)
+
+const PATH_STROKE_WIDTH = 3;
+const PATH_STROKE_COLOR = '#999';
+
+const BEAD_RADIUS = 10;
+const BEAD_SPACING = 0;
+const BEAD_STROKE_WIDTH = 0;
+const BEAD_FILL_COLOR = colors(1);
+
+const ANIMATIN_DURATION = 1000;
+const ANIMATIN_DELAY = ANIMATIN_DURATION*0.25;
+
+const SPACING = 2*BEAD_RADIUS+BEAD_SPACING;
+const FIRST_POSITION = NODE_RADIUS+BEAD_RADIUS+BEAD_SPACING;
+
+function createNodes(points) {
+  svg.selectAll(".point")
+      .data(points)
+    .enter().append("circle")
+      .style("stroke-width", NODE_STROKE_WIDTH)
+      .style("fill", NODE_FILL_COLOR )
+      .attr("r", NODE_RADIUS)
+      .attr("transform", function(d) { return "translate(" + d + ")"; });
+}  
+
+function createPath(points) {
+  return svg.append("path")
+    
+    /* move to back of the nodes */
+    .each(function() { 
+        var firstChild = this.parentNode.firstChild; 
+        if (firstChild) { 
+            this.parentNode.insertBefore(this, firstChild); 
+        } 
+    })
+    /* create path consisting of points */
+    .data([points])
+
+    /* change path styles */
+    .style("stroke-width", PATH_STROKE_WIDTH)
+    .style("stroke", PATH_STROKE_COLOR )
+      .attr("d", d3.line()
+        .curve(d3.curveCardinal));
+}
+
+function creatBeads(path, count) {
+  var beads = [];
+  for (var i=0; i<count; i++) {
+    var beadPosition = path.node().getPointAtLength(FIRST_POSITION+i*SPACING);
+    var beat = svg.append("circle")
+      .style("stroke-width", BEAD_STROKE_WIDTH)
+      .style("fill", BEAD_FILL_COLOR)
+      .attr("r", BEAD_RADIUS)
+      .attr("transform", "translate(" + [beadPosition.x, beadPosition.y] + ")");
+    beads.push(beat);
+  }
+  return beads;
+}
+
+function moveBeads(path, beads, count, callback) {
+  var transitionsCount = 0;
+  var beadsCount = beads.length;
+  for (var i=beadsCount-1; i>=(beadsCount-count); i--) {
+    transition(path, beads, i)
+    
+    /* simulate an "endAll" event my counting the transitions starts and ends. */
+    .on( "start", function() {
+      transitionsCount++;
+    })
+    .on( "end", function() {
+      if ( --transitionsCount === 0 ) {
+        callback();
+      }
+    });
+  }
+}
+
+function transition(path, beads, beadIndex) {
+  var beadCount = beads.length;
+  var beadNumber = beadCount-beadIndex-1;
+  return beads[beadIndex]
+    .transition()
+    .delay(beadNumber * ANIMATIN_DELAY)
+    .duration(ANIMATIN_DURATION)
+    .attrTween("transform", translateAlongPath(path.node(), beadCount, beadIndex,));
+}
+
+// Returns an attrTween for translating along the specified path element.
+function translateAlongPath(path, beadCount, beadIndex) {
+  var beadNumber = beadCount-beadIndex-1;
+  var startPosition = FIRST_POSITION + (beadIndex * SPACING);
+  var endPosition = FIRST_POSITION + (beadNumber * SPACING);
+  var totalLength = path.getTotalLength() - startPosition - endPosition;
+  return function(d, i, elements) {
+    return function(percent) {
+      var point = path.getPointAtLength(percent * totalLength + startPosition);
+      return "translate(" + point.x + "," + point.y + ")";
+    };
+  };
+}
+
+nodes = createNodes(points);
+
+paths.push(createPath([points[0],points[1]]));
+paths.push(createPath([points[1],points[2]]));
+paths.push(createPath([points[2],points[3]]));
+paths.push(createPath([points[1],points[3]]));
+
+beads.push(creatBeads(paths[0], 4));
+beads.push(creatBeads(paths[1], 5));
+beads.push(creatBeads(paths[2], 3));
+beads.push(creatBeads(paths[3], 6));
+
+// animate all beads
+async.series([
+  (c) => moveBeads(paths[0], beads[0], 2, c),
+  (c) => moveBeads(paths[1], beads[1], 2, c),
+  (c) => moveBeads(paths[2], beads[2], 2, c)
+]);
+	
+</script>
+</body>
+</html>
