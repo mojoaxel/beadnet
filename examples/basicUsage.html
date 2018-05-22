@@ -155,18 +155,18 @@ var nodes = [{
   y: 100
 }];
 
-var links = [{
-  source: 'Alice',
-  destination: 'Hub1'
+var channels = [{
+  source: { node: 'Alice', amount: 2 },
+  destination: { node: 'Hub1', amount: 0 }
 }, {
-  source: 'Hub1',
-  destination: 'Hub2'
+  source: { node: 'Hub1', amount: 2 },
+  destination: { node: 'Hub2', amount: 0 }
 }, {
-  source: 'Hub2',
-  destination: 'Bob'
+  source: { node: 'Hub1', amount: 2 },
+  destination: { node: 'Bob', amount: 0 }
 }, {
-  source: 'Hub1',
-  destination: 'Bob'
+  source: { node: 'Hub2', amount: 2 },
+  destination: { node: 'Bob', amount: 0 }
 }];
 
 BN.createNodes(nodes);

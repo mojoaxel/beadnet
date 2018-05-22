@@ -1,5 +1,6 @@
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
+import babel from 'rollup-plugin-babel';
 import { uglify } from 'rollup-plugin-uglify';
 import pkg from './package.json';
 
@@ -8,6 +9,7 @@ export default [
 	/* browser-friendly UMD build */
 	{
 		input: 'src/beadnet.js',
+		external: Object.keys(pkg.peerDependencies),
 		output: {
 			name: pkg.name,
 			file: pkg.browser,
@@ -16,14 +18,20 @@ export default [
 		plugins: [
 			resolve(),
 			commonjs(),
-			//uglify()
+			babel({
+				exclude: 'node_modules/**'
+			}),
+			uglify()
 		]
 	},
 
 	/* ES module (for bundlers) build. */
 	{
 		input: 'src/beadnet.js',
-		external: Object.keys(pkg.dependencies),
+		external: [
+			...Object.keys(pkg.dependencies),
+			...Object.keys(pkg.peerDependencies)
+		],
 		output: [{ 
 			file: pkg.module, 
 			format: 'es' 

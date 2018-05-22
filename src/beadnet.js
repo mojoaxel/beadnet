@@ -1,14 +1,17 @@
-import dopts from 'default-options';
 import randomID from 'random-id';
 import log from './logger';
 
 class BeatNet {
 
+	/**
+	 * TODO
+	 * @param {*} options 
+	 */
 	constructor(options) {
 		/* Merge default option with user given options 
-		* To make a parameter required set it to "undefined" in the defaults.
-		*/
-		this.opt = dopts(options, {
+		 * To make a parameter required set it to "undefined" in the defaults. */
+		this.opt = {};
+		Object.assign(this.opt, {
 			
 			colorScheme: d3.scaleOrdinal(d3.schemeCategory10),
 
@@ -23,7 +26,7 @@ class BeatNet {
 				color: null,
 				radius: 20
 			}
-		});
+		}, options);
 
 		this.opt.nodes.color = this.opt.nodes.color || this.opt.colorScheme(0);
 
@@ -56,21 +59,44 @@ class BeatNet {
 		return this._svg;
 	}
 
-	createNode({ id = randomID(), x = null, y = null0 }) {
+	/**
+	 * TODO
+	 * @param {*} id 
+	 * @param {*} x 
+	 * @param {*} x 
+	 */
+	createNode({ id = randomID(), x = null, y = null }) {
 		log.debug(`createNode: id:${id}, x:${x}, y:${y}`);
-		this._svg
-			.selectAll(".point")
+
+		var node = svg.selectAll(".node")
 			.data(arguments)
 			.enter()
-				.append("circle")
-					.style("stroke-width", this.opt.nodes.strokeWidth)
-					.style("fill", this.opt.nodes.color )
-					.attr("r", this.opt.nodes.radius)
-					.attr("transform", function(d) { return "translate(" + [x, y] + ")"; });
+				.append("g")
+					.attr("id", (d) => d.id)
+					.attr("transform", (d) => `translate(${d.x}, ${d.y})`);
+
+		var circles = node
+			.append("circle")
+				.style("stroke-width", this.opt.nodes.strokeWidth)
+				.style("fill", this.opt.nodes.color )
+				.attr("r", this.opt.nodes.radius);
+
+		var labels = node
+			.append("text")
+				.attr("stroke", "#FFF")
+				.attr("font-family", "sans-serif")
+				.attr("font-size", "10px")
+				.attr("x", this.opt.nodes.radius * -0.5)
+				.attr("y", 0)
+				.text((d) => d.id); 
 	}
 
+	/**
+	 * TODO
+	 * @param {*} nodes 
+	 */
 	createNodes(nodes) {
-		log.debug(`createNodes: ${nodes}`);
+		log.debug("createNodes: ", nodes);
 		nodes.forEach(node => this.createNode(node));
 	}
 }
