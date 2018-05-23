@@ -56,7 +56,7 @@ const BEAD_STROKE_WIDTH = 0;
 const BEAD_FILL_COLOR = colors(1);
 
 const ANIMATIN_DURATION = 1000;
-const ANIMATIN_DELAY = ANIMATIN_DURATION*0.25;
+const ANIMATIN_DELAY = ANIMATIN_DURATION*0.1;
 
 const SPACING = 2*BEAD_RADIUS+BEAD_SPACING;
 const FIRST_POSITION = NODE_RADIUS+BEAD_RADIUS+BEAD_SPACING; 
@@ -64,13 +64,15 @@ const FIRST_POSITION = NODE_RADIUS+BEAD_RADIUS+BEAD_SPACING;
 function createPath(points) {
   return svg.append("path")
     
-    /* move to back of the nodes */
+    /* move to the background of the nodes.
+      This prevents the nodes to be covered by the lines of the channels */
     .each(function() { 
         var firstChild = this.parentNode.firstChild; 
         if (firstChild) { 
             this.parentNode.insertBefore(this, firstChild); 
         } 
     })
+    
     /* create path consisting of points */
     .data([points])
 
