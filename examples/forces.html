@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  fill: none;
+  stroke: #bbb;
+}
+
+</style>
+<svg width="960" height="600"></svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+
+var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+var simulation = d3.forceSimulation()
+	.force("link", d3.forceLink().id(function(d) { return d.id; }))
+	.force("charge", d3.forceManyBody().strength(-5000))
+	.force("center", d3.forceCenter(width / 2, height / 2));
+
+var nodes = [
+	{ id: "Alice" },
+	{ id: "Hub1" },
+	{ id: "Hub2" },
+	{ id: "Bob" },
+];
+
+var links = [{
+	source: "Alice", 
+	target: "Hub1", 
+}, {
+	source: "Hub1", 
+	target: "Hub2"
+}, {
+	source: "Hub1", 
+	target: "Bob"
+}, {
+	source: "Bob", 
+	target: "Hub2"
+}];
+
+var nodes = nodes;
+var nodeById = d3.map(nodes, function(d) { return d.id; });
+var links = links;
+var channels = [];
+
+links.forEach(function(link) {
+	var source = link.source = nodeById.get(link.source);
+	var target = link.target = nodeById.get(link.target);
+
+	links.push({
+		source: source, 
+		target: target
+	});
+
+	channels.push([source, target]);
+});
+
+var link = svg.selectAll(".link")
+	.data(channels)
+	.enter().append("path")
+		.attr("class", "link");
+
+var node = svg.selectAll(".node")
+	.data(nodes)
+	.enter().append("circle")
+		.attr("class", "node")
+		.attr("r", 15)
+		.attr("fill", function(d) { return color(2); })
+		.call(d3.drag()
+				.on("start", dragstarted)
+				.on("drag", dragged)
+				.on("end", dragended));
+
+node.append("title")
+		.text(function(d) { return d.id; });
+
+simulation
+		.nodes(nodes)
+		.on("tick", ticked);
+
+simulation.force("link")
+		.links(links);
+
+function ticked() {
+	link.attr("d", positionLink);
+	node.attr("transform", positionNode);
+}
+
+function positionLink(d) {
+	return "M" + d[0].x + "," + d[0].y + " " + d[1].x + "," + d[1].y;
+}
+
+function positionNode(d) {
+	return "translate(" + d.x + "," + d.y + ")";
+}
+
+function dragstarted(d) {
+	if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+	d.fx = d.x, d.fy = d.y;
+}
+
+function dragged(d) {
+	d.fx = d3.event.x, d.fy = d3.event.y;
+}
+
+function dragended(d) {
+	if (!d3.event.active) simulation.alphaTarget(0);
+	d.fx = null, d.fy = null;
+}
+
+
+var colors = d3.scaleOrdinal(d3.schemeCategory10);
+
+const NODE_RADIUS = 20;
+const NODE_STROKE_WIDTH = 0;
+const NODE_FILL_COLOR = colors(0)
+
+const PATH_STROKE_WIDTH = 3;
+const PATH_STROKE_COLOR = '#999';
+
+const BEAD_RADIUS = 10;
+const BEAD_SPACING = 0;
+const BEAD_STROKE_WIDTH = 0;
+const BEAD_FILL_COLOR = colors(1);
+
+const ANIMATIN_DURATION = 1000;
+const ANIMATIN_DELAY = ANIMATIN_DURATION*0.1;
+
+const SPACING = 2*BEAD_RADIUS+BEAD_SPACING;
+const FIRST_POSITION = NODE_RADIUS+BEAD_RADIUS+BEAD_SPACING; 
+
+function creatBeads(path, count) {
+  var beads = [];
+  for (var i=0; i<count; i++) {
+    var beadPosition = path.node().getPointAtLength(FIRST_POSITION+i*SPACING);
+    var beat = svg.append("circle")
+      .style("stroke-width", BEAD_STROKE_WIDTH)
+      .style("fill", BEAD_FILL_COLOR)
+      .attr("r", BEAD_RADIUS)
+      .attr("transform", "translate(" + [beadPosition.x, beadPosition.y] + ")");
+    beads.push(beat);
+  }
+  return beads;
+}
+
+</script>
