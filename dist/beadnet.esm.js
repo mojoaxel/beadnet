@@ -71,7 +71,7 @@ class BeatNet {
 	createNode({ id = randomID(), x = null, y = null }) {
 		log.debug(`createNode: id:${id}, x:${x}, y:${y}`);
 
-		var node = svg.selectAll(".node")
+		var node = this._svg.selectAll(".node")
 			.data(arguments)
 			.enter()
 				.append("g")
@@ -89,8 +89,7 @@ class BeatNet {
 				.attr("stroke", "#FFF")
 				.attr("font-family", "sans-serif")
 				.attr("font-size", "10px")
-				.attr("x", this.opt.nodes.radius * -0.5)
-				.attr("y", 0)
+				.attr("text-anchor", "middle")
 				.text((d) => d.id); 
 	}
 
@@ -101,6 +100,18 @@ class BeatNet {
 	createNodes(nodes) {
 		log.debug("createNodes: ", nodes);
 		nodes.forEach(node => this.createNode(node));
+	}
+
+	/**
+	 * TODO
+	 * @param {*} param0 
+	 */
+	createChannel({ source = null, target = null }) {
+	
+	}
+
+	createChannels(channels) {
+		channels.forEach(channel => this.createChannel(channel));
 	}
 }
 

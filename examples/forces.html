@@ -42,8 +42,9 @@ var svg = d3.select("svg"),
     height = +svg.attr("height");
 
 var simulation = d3.forceSimulation()
+	.alphaDecay(0.2)
 	.force("link", d3.forceLink().id(function(d) { return d.id; }))
-	.force("charge", d3.forceManyBody().strength(-8000))
+	.force("charge", d3.forceManyBody().strength(-20000))
 	.force("center", d3.forceCenter(width / 2, height / 2));
 
 var nodes = [{
@@ -77,6 +78,7 @@ var links = [{
 var nodes = nodes;
 var nodeById = d3.map(nodes, function(d) { return d.id; });
 var connections = [];
+var beads = [];
 
 links.forEach(function(link) {
 	connections.push({
@@ -96,7 +98,7 @@ var node = svg.selectAll(".node")
 	.data(nodes)
 	.enter().append("g")
 		.attr("id", (d) => d.id)
-					
+
 var circle = node.append("circle")
 		.attr("class", "node")
 		.attr("r", NODE_RADIUS)
@@ -150,21 +152,6 @@ function dragged(d) {
 function dragended(d) {
 	if (!d3.event.active) simulation.alphaTarget(0);
 	d.fx = null, d.fy = null;
-}
-
-
-function creatBeads(path, count) {
-  var beads = [];
-  for (var i=0; i<count; i++) {
-    var beadPosition = path.node().getPointAtLength(FIRST_POSITION+i*SPACING);
-    var beat = svg.append("circle")
-      .style("stroke-width", BEAD_STROKE_WIDTH)
-      .style("fill", BEAD_FILL_COLOR)
-      .attr("r", BEAD_RADIUS)
-      .attr("transform", "translate(" + [beadPosition.x, beadPosition.y] + ")");
-    beads.push(beat);
-  }
-  return beads;
 }
 
 </script>
