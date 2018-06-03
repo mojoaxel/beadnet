@@ -37,6 +37,8 @@
     "rollup-watch": "^4.3.1"
   },
   "dependencies": {
+    "async": "^2.6.1",
+    "d3": "^5.4.0",
     "loglevel": "^1.6.1",
     "random-id": "0.0.2"
   },

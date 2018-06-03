@@ -14,14 +14,15 @@
 
 </style>
 <svg width="960" height="600"></svg>
-<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="../node_modules/d3/dist/d3.js"></script>
 <script>
 
 var colors = d3.scaleOrdinal(d3.schemeCategory10);
 
 const NODE_RADIUS = 20;
 const NODE_STROKE_WIDTH = 0;
-const NODE_FILL_COLOR = colors(0)
+const NODE_FILL_COLOR = colors(0);
+const NODE_LABEL_COLOR = '#FFF';
 
 const PATH_STROKE_WIDTH = 3;
 const PATH_STROKE_COLOR = '#999';
@@ -49,30 +50,42 @@ var simulation = d3.forceSimulation()
 
 var nodes = [{
 	id: "Alice",
-	color: colors(3)
+	color: colors(3),
+	balance: 2
 }, {
 	id: "Hub1",
-	color: colors(4)
+	color: colors(4),
+	balance: 10
 }, { 
 	id: "Hub2",
-	color: colors(5)
+	color: colors(5),
+	balance: 20
 }, { 
 	id: "Bob",
-	color: colors(6)
+	color: colors(6),
+	balance: 4
 }];
 
 var links = [{
 	source: "Alice", 
-	target: "Hub1", 
+	target: "Hub1",
+	sourceBalance: 1,
+	targetBalance: 0
 }, {
 	source: "Hub1", 
-	target: "Hub2"
+	target: "Hub2",
+	sourceBalance: 2,
+	targetBalance: 0
 }, {
 	source: "Hub1", 
-	target: "Bob"
+	target: "Bob",
+	sourceBalance: 3,
+	targetBalance: 0
 }, {
 	source: "Bob", 
-	target: "Hub2"
+	target: "Hub2",
+	sourceBalance: 4,
+	targetBalance: 0
 }];
 
 var nodes = nodes;
@@ -83,53 +96,82 @@ var beads = [];
 links.forEach(function(link) {
 	connections.push({
 		source: nodeById.get(link.source), 
-		target: nodeById.get(link.target)
+		target: nodeById.get(link.target),
+		sourceBalance: link.sourceBalance,
+		targetBalance: link.targetBalance
 	});
 });
 
-var channels = svg.selectAll(".link")
+var linkContainer = svg.append("g").attr("class", "channels");
+
+var channels = linkContainer.selectAll(".channel")
 	.data(connections)
 	.enter().append("g")
-		.attr("class", "channels");
-	
-var paths = channels.append("path")
+		.attr("class", "channel")
+		.attr("source-balance", (d) => {
+			return d.sourceBalance;
+		})
+		.attr("target-balance", (d) => {
+			return d.targetBalance;
+		});
 
-var node = svg.selectAll(".node")
+var paths = channels.append("path");
+
+channels.each(function(d, n) {
+	for (let i=0; i<(d.sourceBalance); i++) {
+		var bead = d3.select(this).append("circle")
+			.style("stroke-width", BEAD_STROKE_WIDTH)
+			.style("fill", BEAD_FILL_COLOR)
+			.attr("index", i)
+			.attr("r", BEAD_RADIUS);
+		beads.push(bead);
+	}
+});
+
+
+
+var nodeContainer = svg.append("g").attr("class", "nodes");
+
+var node = nodeContainer.selectAll(".node")
 	.data(nodes)
 	.enter().append("g")
 		.attr("id", (d) => d.id)
+		.attr("balance", (d) => d.balance)
 
 var circle = node.append("circle")
-		.attr("class", "node")
-		.attr("r", NODE_RADIUS)
-		.attr("fill", function(d) { return d.color; })
-		.call(d3.drag()
-				.on("start", dragstarted)
-				.on("drag", dragged)
-				.on("end", dragended));
+	.attr("class", "node")
+	.attr("r", NODE_RADIUS)
+	.attr("fill", function(d) { return d.color; })
+	.call(d3.drag()
+		.on("start", dragstarted)
+		.on("drag", dragged)
+		.on("end", dragended));
 
-var labels = node
-		.append("text")
-			.attr("stroke", "#FFF")
-			.attr("font-family", "sans-serif")
-			.attr("font-size", "10px")
-			.attr("text-anchor", "middle")
-			.attr("pointer-events", "none")
-			.text((d) => d.id);
+var labels = node.append("text")
+	.attr("stroke", NODE_LABEL_COLOR)
+	.attr("fill", NODE_LABEL_COLOR)
+	.attr("font-family", "sans-serif")
+	.attr("font-size", "12px")
+	.attr("text-anchor", "middle")
+	.attr("pointer-events", "none")
+	.text((d) => d.balance);
 
 node.append("title")
-		.text(function(d) { return d.id; });
+	.text(function(d) { return d.id; });
+
+
 
 simulation
-		.nodes(nodes)
-		.on("tick", ticked);
+	.nodes(nodes)
+	.on("tick", ticked);
 
 simulation.force("link")
-		.links(links);
+	.links(links);
 
 function ticked() {
 	paths.attr("d", positionLink);
 	node.attr("transform", positionNode);
+	beads.forEach((bead) => bead.attr("transform", positionBeat));
 }
 
 function positionLink(d) {
@@ -138,6 +180,14 @@ function positionLink(d) {
 
 function positionNode(d) {
 	return "translate(" + d.x + "," + d.y + ")";
+}
+
+function positionBeat(d) {
+	console.log(this, d);
+	let index = d3.select(this).attr("index");
+	var path = d3.select(this.parentNode).select('path');
+	var beadPosition = path.node().getPointAtLength(FIRST_POSITION + index*SPACING);
+	return "translate(" + [beadPosition.x, beadPosition.y] + ")";
 }
 
 function dragstarted(d) {
