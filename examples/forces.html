@@ -29,8 +29,9 @@ const PATH_STROKE_COLOR = '#999';
 
 const BEAD_RADIUS = 10;
 const BEAD_SPACING = 0;
-const BEAD_STROKE_WIDTH = 0;
+const BEAD_STROKE_WIDTH = 1;
 const BEAD_FILL_COLOR = colors(1);
+const BEAD_STROKE_COLOR = '#FFF';
 
 const ANIMATIN_DURATION = 1000;
 const ANIMATIN_DELAY = ANIMATIN_DURATION*0.1;
@@ -115,13 +116,17 @@ var channels = linkContainer.selectAll(".channel")
 			return d.targetBalance;
 		});
 
-var paths = channels.append("path");
+var paths = channels
+	.append("path")
+	.style("stroke-width", PATH_STROKE_WIDTH)
+	.style("stroke", PATH_STROKE_COLOR);
 
 channels.each(function(d, n) {
 	for (let i=0; i<(d.sourceBalance); i++) {
 		var bead = d3.select(this).append("circle")
 			.style("stroke-width", BEAD_STROKE_WIDTH)
 			.style("fill", BEAD_FILL_COLOR)
+			.style("stroke", BEAD_STROKE_COLOR)
 			.attr("index", i)
 			.attr("r", BEAD_RADIUS);
 		beads.push(bead);
@@ -171,24 +176,17 @@ simulation.force("link")
 	.links(links);
 
 function ticked() {
-	paths.attr("d", positionLink);
+	paths.attr("d", (d) => `M${d.source.x},${d.source.y} ${d.target.x},${d.target.y}`);
 	node.attr("transform", (d) => `translate(${d.x},${d.y})`);
 	beads.forEach((bead) => bead.attr("transform", positionBeat));
 }
 
-function positionLink(d) {
-	return "M" + d.source.x + "," + d.source.y + " " + d.target.x + "," + d.target.y;
-}
-
-function positionNode(d) {
-	return "translate(" + d.x + "," + d.y + ")";
-}
 
 function positionBeat(d) {
 	let index = d3.select(this).attr("index");
 	var path = d3.select(this.parentNode).select('path');
 	var beadPosition = path.node().getPointAtLength(FIRST_POSITION + index*SPACING);
-	return "translate(" + [beadPosition.x, beadPosition.y] + ")";
+	return `translate(${beadPosition.x},${beadPosition.y})`;
 }
 
 function dragstarted(d) {
