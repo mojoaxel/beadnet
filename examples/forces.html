@@ -38,14 +38,14 @@ const ANIMATIN_DELAY = ANIMATIN_DURATION*0.1;
 const SPACING = 2*BEAD_RADIUS+BEAD_SPACING;
 const FIRST_POSITION = NODE_RADIUS+BEAD_RADIUS+BEAD_SPACING; 
 
-var svg = d3.select("svg"),
-    width = +svg.attr("width"),
-    height = +svg.attr("height");
+var svg = d3.select("svg");
+var width = +svg.attr("width");
+var height = +svg.attr("height");
 
 var simulation = d3.forceSimulation()
-	.alphaDecay(0.2)
-	.force("link", d3.forceLink().id(function(d) { return d.id; }))
-	.force("charge", d3.forceManyBody().strength(-20000))
+	.alphaDecay(0.1)
+	.force("link", d3.forceLink().id(function(d) { return d.id; }).strength(0.6))
+	.force("charge", d3.forceManyBody().strength(-10000))
 	.force("center", d3.forceCenter(width / 2, height / 2));
 
 var nodes = [{
@@ -136,16 +136,19 @@ var node = nodeContainer.selectAll(".node")
 	.data(nodes)
 	.enter().append("g")
 		.attr("id", (d) => d.id)
+		.attr("class", "node")
 		.attr("balance", (d) => d.balance)
+		.call(d3.drag()
+			.on("start", dragstarted)
+			.on("drag", dragged)
+			.on("end", dragended));
 
 var circle = node.append("circle")
 	.attr("class", "node")
 	.attr("r", NODE_RADIUS)
-	.attr("fill", function(d) { return d.color; })
-	.call(d3.drag()
-		.on("start", dragstarted)
-		.on("drag", dragged)
-		.on("end", dragended));
+	.attr("cx", 0)
+	.attr("cy", 0)
+	.attr("fill", function(d) { return d.color; });
 
 var labels = node.append("text")
 	.attr("stroke", NODE_LABEL_COLOR)
@@ -160,7 +163,6 @@ node.append("title")
 	.text(function(d) { return d.id; });
 
 
-
 simulation
 	.nodes(nodes)
 	.on("tick", ticked);
@@ -170,7 +172,7 @@ simulation.force("link")
 
 function ticked() {
 	paths.attr("d", positionLink);
-	node.attr("transform", positionNode);
+	node.attr("transform", (d) => `translate(${d.x},${d.y})`);
 	beads.forEach((bead) => bead.attr("transform", positionBeat));
 }
 
@@ -183,7 +185,6 @@ function positionNode(d) {
 }
 
 function positionBeat(d) {
-	console.log(this, d);
 	let index = d3.select(this).attr("index");
 	var path = d3.select(this.parentNode).select('path');
 	var beadPosition = path.node().getPointAtLength(FIRST_POSITION + index*SPACING);
@@ -191,17 +192,25 @@ function positionBeat(d) {
 }
 
 function dragstarted(d) {
-	if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-	d.fx = d.x, d.fy = d.y;
+	//if (!d3.event.active) 
+	simulation
+		.alphaTarget(0.8)
+		.restart();
+	d.fx = d.x;
+	d.fy = d.y;
 }
 
 function dragged(d) {
-	d.fx = d3.event.x, d.fy = d3.event.y;
+	d.fx = d3.event.x; 
+	d.fy = d3.event.y;
 }
 
 function dragended(d) {
-	if (!d3.event.active) simulation.alphaTarget(0);
-	d.fx = null, d.fy = null;
+	//if (!d3.event.active) 
+	simulation
+		.alphaTarget(0);
+	d.fx = null;
+	d.fy = null;
 }
 
 </script>
