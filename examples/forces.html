@@ -1,27 +1,35 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+
 <style>
-
-.node {
-  stroke: #fff;
-  stroke-width: 1.5px;
+body, html {
+	width: 100%;
+	height: 100%;
+	margin: 0;
 }
-
-.channels path {
-  fill: none;
-  stroke: #bbb;
+#chartContainer {
+	border: 3px solid gray;
+	box-sizing: border-box;
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
 }
-
 </style>
-<svg width="960" height="600"></svg>
+
+<div id="chartContainer"></div>
+
+
 <script src="../node_modules/d3/dist/d3.js"></script>
 <script>
 
 var colors = d3.scaleOrdinal(d3.schemeCategory10);
 
 const NODE_RADIUS = 20;
-const NODE_STROKE_WIDTH = 0;
+const NODE_STROKE_WIDTH = 2;
 const NODE_FILL_COLOR = colors(0);
+const NODE_STROKE_COLOR = '#FFF';
 const NODE_LABEL_COLOR = '#FFF';
 
 const PATH_STROKE_WIDTH = 3;
@@ -39,15 +47,36 @@ const ANIMATIN_DELAY = ANIMATIN_DURATION*0.1;
 const SPACING = 2*BEAD_RADIUS+BEAD_SPACING;
 const FIRST_POSITION = NODE_RADIUS+BEAD_RADIUS+BEAD_SPACING; 
 
-var svg = d3.select("svg");
-var width = +svg.attr("width");
-var height = +svg.attr("height");
+var container = document.getElementById("chartContainer");
+var svg = d3.select(container).append("svg");
 
-var simulation = d3.forceSimulation()
-	.alphaDecay(0.1)
-	.force("link", d3.forceLink().id(function(d) { return d.id; }).strength(0.6))
-	.force("charge", d3.forceManyBody().strength(-10000))
-	.force("center", d3.forceCenter(width / 2, height / 2));
+function setChartSize() {
+	const width = +container.clientWidth;
+	var height = +container.clientHeight;
+	svg.attr("width", width).attr("height", height);
+	updateSimulationCenter();
+}
+
+function createSimulation() {
+	return d3.forceSimulation()
+		.alphaDecay(0.1)
+		.force("link", d3.forceLink().id(function(d) { return d.id; }).strength(0.6))
+		.force("charge", d3.forceManyBody().strength(-10000));
+}
+
+function updateSimulationCenter() {
+	const centerX = svg.attr('width') / 2;
+	const centerY = svg.attr('height') / 2;
+	simulation
+		.force("center", d3.forceCenter(centerX, centerY))
+		.restart();
+}
+
+var simulation = createSimulation();
+updateSimulationCenter();
+
+setChartSize();
+window.addEventListener("resize", setChartSize);
 
 var nodes = [{
 	id: "Alice",
@@ -61,6 +90,10 @@ var nodes = [{
 	id: "Hub2",
 	color: colors(5),
 	balance: 20
+}, { 
+	id: "Hub3",
+	color: colors(6),
+	balance: 60
 }, { 
 	id: "Bob",
 	color: colors(6),
@@ -87,6 +120,16 @@ var links = [{
 	target: "Hub2",
 	sourceBalance: 4,
 	targetBalance: 0
+}, {
+	source: "Alice", 
+	target: "Hub3",
+	sourceBalance: 2,
+	targetBalance: 2
+}, {
+	source: "Hub3", 
+	target: "Hub1",
+	sourceBalance: 2,
+	targetBalance: 2
 }];
 
 var nodes = nodes;
@@ -143,6 +186,8 @@ var node = nodeContainer.selectAll(".node")
 		.attr("id", (d) => d.id)
 		.attr("class", "node")
 		.attr("balance", (d) => d.balance)
+		.style("stroke", NODE_STROKE_COLOR)
+		.style("stroke-width", NODE_STROKE_WIDTH)
 		.call(d3.drag()
 			.on("start", dragstarted)
 			.on("drag", dragged)
@@ -156,6 +201,7 @@ var circle = node.append("circle")
 	.attr("fill", function(d) { return d.color; });
 
 var labels = node.append("text")
+	.style("stroke-width", 1)
 	.attr("stroke", NODE_LABEL_COLOR)
 	.attr("fill", NODE_LABEL_COLOR)
 	.attr("font-family", "sans-serif")
@@ -183,17 +229,18 @@ function ticked() {
 
 
 function positionBeat(d) {
-	let index = d3.select(this).attr("index");
-	var path = d3.select(this.parentNode).select('path');
-	var beadPosition = path.node().getPointAtLength(FIRST_POSITION + index*SPACING);
+	const index = d3.select(this).attr("index");
+	const path = d3.select(this.parentNode).select('path');
+	const beadPosition = path.node().getPointAtLength(FIRST_POSITION + index*SPACING);
 	return `translate(${beadPosition.x},${beadPosition.y})`;
 }
 
 function dragstarted(d) {
-	//if (!d3.event.active) 
-	simulation
-		.alphaTarget(0.8)
-		.restart();
+	if (!d3.event.active) {
+		simulation
+			.alphaTarget(0.6)
+			.restart();
+	}
 	d.fx = d.x;
 	d.fy = d.y;
 }
@@ -204,11 +251,26 @@ function dragged(d) {
 }
 
 function dragended(d) {
-	//if (!d3.event.active) 
-	simulation
-		.alphaTarget(0);
+	if (!d3.event.active) { 
+		simulation
+			.alphaTarget(0);
+	}
 	d.fx = null;
 	d.fy = null;
 }
+
+// var zoom = d3.zoom()
+//   .scaleExtent([1, 100])
+//   .on('zoom', zoomFn);
+
+// function zoomFn() {
+//   svg.attr('transform', 'translate(' + d3.event.transform.x + ',' + d3.event.transform.y + ') scale(' + d3.event.transform.k + ')');
+// }
+// svg.call(zoom);
+
+
+// svg.call(d3.zoom().on("zoom", function () {
+//             svg.attr("transform", d3.event.transform)
+//         }))
 
 </script>
