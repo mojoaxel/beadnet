@@ -47,6 +47,13 @@ const ANIMATIN_DELAY = ANIMATIN_DURATION*0.1;
 const SPACING = 2*BEAD_RADIUS+BEAD_SPACING;
 const FIRST_POSITION = NODE_RADIUS+BEAD_RADIUS+BEAD_SPACING; 
 
+const attr = {
+	beadAnimation: {
+		ease: d3.easeExp
+	}
+}
+
+
 var container = document.getElementById("chartContainer");
 var svg = d3.select(container).append("svg");
 var chart = svg.append("g").attr("class", "chart").attr("transform", "translate(0,0) scale(1)");
@@ -171,6 +178,8 @@ channels.each(function(d, n) {
 			.style("stroke-width", BEAD_STROKE_WIDTH)
 			.style("fill", BEAD_FILL_COLOR)
 			.style("stroke", BEAD_STROKE_COLOR)
+			.attr("class", "bead")
+			.attr("animation-state", 0)
 			.attr("index", i)
 			.attr("r", BEAD_RADIUS);
 		beads.push(bead);
@@ -225,14 +234,39 @@ simulation.force("link")
 function ticked() {
 	paths.attr("d", (d) => `M${d.source.x},${d.source.y} ${d.target.x},${d.target.y}`);
 	node.attr("transform", (d) => `translate(${d.x},${d.y})`);
+	tickedBeads();
+}
+
+function tickedBeads() {
 	beads.forEach((bead) => bead.attr("transform", positionBeat));
 }
 
+function animateBead(bead) {
+	bead.transition()
+		.ease(attr.beadAnimation.ease)
+		.duration(3000)
+		.attrTween("animation-state", function(a) { return function(t) { 
+			tickedBeads();
+			return t;
+		}})
+		;
+}
 
-function positionBeat(d) {
+//animateBead(0);
+animateBead(beads[1]);
+animateBead(beads[2]);
+
+function positionBeat() {
 	const index = d3.select(this).attr("index");
+	const aniState = d3.select(this).attr("animation-state");
 	const path = d3.select(this.parentNode).select('path');
-	const beadPosition = path.node().getPointAtLength(FIRST_POSITION + index*SPACING);
+	const beadsInChannel = d3.select(this.parentNode).selectAll('.bead').size()-1;
+
+	var startPosition = FIRST_POSITION + (index * SPACING);	
+	var endPosition = FIRST_POSITION + ((beadsInChannel-index) * SPACING);
+	var totalLength = path.node().getTotalLength() - startPosition - endPosition;
+
+	const beadPosition = path.node().getPointAtLength(startPosition + aniState * totalLength);
 	return `translate(${beadPosition.x},${beadPosition.y})`;
 }
 
