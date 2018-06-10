@@ -259,11 +259,12 @@ animateBead(beads[2]);
 function positionBeat() {
 	const index = d3.select(this).attr("index");
 	const aniState = d3.select(this).attr("animation-state");
-	const path = d3.select(this.parentNode).select('path');
-	const beadsInChannel = d3.select(this.parentNode).selectAll('.bead').size()-1;
+	const channel = d3.select(this.parentNode);
+	const path = channel.select('path');
+	const targetBalance = channel.attr("target-balance");
 
 	var startPosition = FIRST_POSITION + (index * SPACING);	
-	var endPosition = FIRST_POSITION + ((beadsInChannel-index) * SPACING);
+	var endPosition = FIRST_POSITION + ((targetBalance-(index-1)) * SPACING);
 	var totalLength = path.node().getTotalLength() - startPosition - endPosition;
 
 	const beadPosition = path.node().getPointAtLength(startPosition + aniState * totalLength);
