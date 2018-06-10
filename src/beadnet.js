@@ -1,5 +1,6 @@
-import randomID from 'random-id';
+//import randomID from 'random-id';
 import log from './logger';
+import extendDefaultOptions from './options';
 
 class BeatNet {
 
@@ -8,55 +9,102 @@ class BeatNet {
 	 * @param {*} options 
 	 */
 	constructor(options) {
-		/* Merge default option with user given options 
-		 * To make a parameter required set it to "undefined" in the defaults. */
-		this.opt = {};
-		Object.assign(this.opt, {
-			
-			colorScheme: d3.scaleOrdinal(d3.schemeCategory10),
-
-			container: {
-				parent: 'body',
-				width: null,
-				height: null
-			},
-
-			nodes: {
-				strokeWidth: 3,
-				color: null,
-				radius: 20
-			}
-		}, options);
-
-		this.opt.nodes.color = this.opt.nodes.color || this.opt.colorScheme(0);
-
-		log.debug("initializing beadnet with options: ", this.opt);
+		this._opt = extendDefaultOptions(options);
+		log.debug("initializing beadnet with options: ", this._opt);
 	}
 
 	/**
-	 * Create the main SVG root inside the container defined by the "opt.container.parent" selector.
-	 * @param {*} width
-	 * @param {*} height
+	 * TODO
 	 */
 	createSVG() {
-		let parentD3 = d3.select(this.opt.container.parent);
-		let parentRect = parentD3.node().getBoundingClientRect();
-		const width = this.opt.container.width || parentRect.width;
-		const height = this.opt.container.height || parentRect.height;
-		log.debug(`createSVG: width: ${parentRect.width}, height: ${parentRect.height}`);
+		/* find the parent container DOM element and insert an SVG */
+		this.container = document.querySelector(this._opt.container.selector);
+		this.svg = d3.select(this.container)
+			.append("svg")
+			.attr("class", "beadnet");
+				
+		/* create svg root element called with class "chart" and initial  */
+		this.chart = this.svg.append("g")
+			.attr("class", "chart")
+			.attr("transform", "translate(0,0) scale(1)");
 
-		/* make sure size is valid */
-		if (!width || !height) {
-			log.error(`createSVG: width: ${width}, height: ${height}`);
-			throw "Invalid container size";
+		/* create a SVG-container-element for all nodes and all channels */
+		this.nodeContainer = this.chart.append("g").attr("class", "nodes");
+		this.linkContainer = this.chart.append("g").attr("class", "channels");
+		
+		this.nodes = [];
+		this.links = [];
+
+		this.simulation = this.createSimulation();
+		this.updateSimulationCenter();
+
+		this.updateSVGSize();
+
+		this.behaviors = this.createBehaviors();
+		this.svg.call(this.behaviors.zoom);
+
+		this.createNodes();
+
+		window.addEventListener("resize", this.onResize.bind(this));
+	}
+
+	createSimulation() {
+		return d3.forceSimulation(this.nodes)
+			.alphaDecay(0.1)
+			.force("link", d3.forceLink(this.links).id(function(d) { return d.id; })/*.distance(20).strength(0.6)*/)
+			//.force("x", d3.forceX())
+			//.force("y", d3.forceY())
+			.force("charge", d3.forceManyBody()/*.strength(-10000)*/)
+			.on("tick", this.ticked.bind(this));
+	}
+
+	/**
+	 * TODO
+	 */
+	updateSVGSize() {
+		this.width = +this.container.clientWidth;
+		this.height = +this.container.clientHeight;
+		this.svg
+			.attr("width", this.width)
+			.attr("height", this.height);
+	}
+
+	/**
+	 * TODO
+	 */
+	onResize() {
+		this.updateSVGSize();
+		this.updateSimulationCenter();
+		this.createBehaviors();
+	}
+	
+	/**
+	 * 
+	 */
+	createBehaviors() {
+		return {
+
+			zoom: d3.zoom()
+				// .translateExtent([
+				// 	[ -this.width*0.5, -this.height*0.5 ],
+				// 	[ +this.width*1.5, +this.height*1.5 ]
+				// ])
+				.scaleExtent([0.1, 5, 4])
+				.on('zoom', () => this.chart.attr('transform', d3.event.transform)),
+
+			drag: d3.drag()
+				.on("start", this.onDragStart.bind(this))
+				.on("drag", this.onDragged.bind(this))
+				.on("end", this.onDragendEnd.bind(this))
 		}
+	}
 
-		/* initialize the SVG root */
-		this._svg = parentD3.append("svg")
-			.attr("width", parentRect.width)
-			.attr("height", parentRect.height);
-
-		return this._svg;
+	updateSimulationCenter() {
+		const centerX = this.svg.attr('width') / 2;
+		const centerY = this.svg.attr('height') / 2;
+		this.simulation
+			.force("center", d3.forceCenter(centerX, centerY))
+			.restart();
 	}
 
 	/**
@@ -65,50 +113,90 @@ class BeatNet {
 	 * @param {*} x 
 	 * @param {*} x 
 	 */
-	createNode({ id = randomID(), x = null, y = null }) {
-		log.debug(`createNode: id:${id}, x:${x}, y:${y}`);
-
-		var node = this._svg.selectAll(".node")
-			.data(arguments)
+	createNodes() {
+		this.nodeElements = this.nodeContainer.selectAll(".node")
+			.data(this.nodes)
 			.enter()
-				.append("g")
-					.attr("id", (d) => d.id)
-					.attr("transform", (d) => `translate(${d.x}, ${d.y})`);
-
-		var circles = node
-			.append("circle")
-				.style("stroke-width", this.opt.nodes.strokeWidth)
-				.style("fill", this.opt.nodes.color )
-				.attr("r", this.opt.nodes.radius);
-
-		var labels = node
-			.append("text")
-				.attr("stroke", "#FFF")
-				.attr("font-family", "sans-serif")
-				.attr("font-size", "10px")
-				.attr("text-anchor", "middle")
-				.text((d) => d.id); 
-	}
-
-	/**
-	 * TODO
-	 * @param {*} nodes 
-	 */
-	createNodes(nodes) {
-		log.debug("createNodes: ", nodes);
-		nodes.forEach(node => this.createNode(node));
-	}
-
-	/**
-	 * TODO
-	 * @param {*} param0 
-	 */
-	createChannel({ source = null, target = null }) {
+			.append("g")
+				.attr("id", (d) => {	console.log(d); return d.id; })
+				.attr("class", "node")
+				.attr("balance", (d) => d.balance)
+				.style("stroke", this._opt.nodes.strokeColor)
+				.style("stroke-width", this._opt.nodes.strokeWidth);
 	
+		var circle = this.nodeElements.append("circle")
+			.attr("class", "node")
+			.attr("r",  this._opt.nodes.radius)
+			.attr("cx", this.width/2)
+			.attr("cy", this.height/2)
+			.attr("fill", function(d) { return d.color; });
+		
+		var labels = this.nodeElements.append("text")
+			.style("stroke-width", 1)
+			.attr("stroke", this._opt.nodes.strokeColor)
+			.attr("fill", this._opt.nodes.strokeColor)
+			.attr("font-family", "sans-serif")
+			.attr("font-size", "12px")
+			.attr("text-anchor", "middle")
+			.attr("pointer-events", "none")
+			.text((d) => d.balance);
+
+		this.nodeElements.append("title")
+			.text(function(d) { return d.id; });
+		
+		this.nodeElements.call(this.behaviors.drag);
+
+		return this.nodeElements;
 	}
 
-	createChannels(channels) {
-		channels.forEach(channel => this.createChannel(channel));
+	addNode(node) {
+		this.nodes.push(node);
+		this.createNodes();	
+		this.simulation
+			.alphaTarget(0.6)
+			.nodes(this.nodes)
+			.alpha(1)
+			.restart();
+	}
+
+	addNodes(nodes) {
+		this.nodes.push(...nodes);
+		this.createNodes();	
+		this.simulation
+			.alphaTarget(0.6)
+			.nodes(this.nodes)
+			.alpha(1)
+			.restart();
+	}
+
+	ticked() {
+		//this.paths.attr("d", (d) => `M${d.source.x},${d.source.y} ${d.target.x},${d.target.y}`);
+		this.nodeElements.attr("transform", (d) => `translate(${d.x},${d.y})`);
+		//	tickedBeads();
+	}
+
+	onDragStart(d) {
+		//if (!d3.event.active) {
+			this.simulation
+				.alphaTarget(0.6)
+				.restart();
+		//}
+		d.fx = d.x;
+		d.fy = d.y;
+	}
+	
+	onDragged(d) {
+		d.fx = d3.event.x; 
+		d.fy = d3.event.y;
+	}
+	
+	onDragendEnd(d) {
+		//if (!d3.event.active) { 
+			this.simulation
+				.alphaTarget(0);
+		//}
+		d.fx = null;
+		d.fy = null;
 	}
 }
 

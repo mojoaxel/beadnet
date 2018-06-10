@@ -1,6 +1,7 @@
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import babel from 'rollup-plugin-babel';
+import sourcemaps from 'rollup-plugin-sourcemaps';
 import { uglify } from 'rollup-plugin-uglify';
 import pkg from './package.json';
 
@@ -13,15 +14,21 @@ export default [
 		output: {
 			name: pkg.name,
 			file: pkg.browser,
-			format: 'umd'
+			format: 'umd',
+			sourcemap: true
+		},
+		watch: {
+			chokidar: false
 		},
 		plugins: [
 			resolve(),
 			commonjs(),
 			babel({
+				runtimeHelpers: true,
 				exclude: 'node_modules/**'
 			}),
-			uglify()
+			uglify(),
+			sourcemaps()
 		]
 	},
 
