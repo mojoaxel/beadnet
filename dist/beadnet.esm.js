@@ -76,9 +76,9 @@ class BeatNet {
 		this.channels = [];
 
 		this.simulation = this.createSimulation();
-		this.updateSimulationCenter();
-
+		
 		this.updateSVGSize();
+		this.updateSimulationCenter();
 
 		this.behaviors = this.createBehaviors();
 		this.svg.call(this.behaviors.zoom);
@@ -96,13 +96,18 @@ class BeatNet {
 		// .force("charge", d3.forceManyBody().strength(-10000))
 		// .on("tick", this.ticked.bind(this));
 
+		// return d3.forceSimulation()
+		// 	.alphaDecay(0.1)
+		// 	//.force("link", d3.forceLink(this.channels).id(function(d) { return d.id; })/*.distance(20).strength(0.6)*/)
+		// 	//.force("x", d3.forceX())
+		// 	//.force("y", d3.forceY())
+		// 	.force("charge", d3.forceManyBody()/*.strength(-10000)*/)
+		// 	.on("tick", this.ticked.bind(this));
+
 		return d3.forceSimulation()
 			.alphaDecay(0.1)
-			//.force("link", d3.forceLink(this.channels).id(function(d) { return d.id; })/*.distance(20).strength(0.6)*/)
-			//.force("x", d3.forceX())
-			//.force("y", d3.forceY())
-			.force("charge", d3.forceManyBody()/*.strength(-10000)*/)
-			.on("tick", this.ticked.bind(this));
+			.force("link", d3.forceLink().id(function(d) { return d.id; }).strength(0.6))
+			.force("charge", d3.forceManyBody().strength(-10000));
 	}
 
 	/**
@@ -132,10 +137,6 @@ class BeatNet {
 		return {
 
 			zoom: d3.zoom()
-				// .translateExtent([
-				// 	[ -this.width*0.5, -this.height*0.5 ],
-				// 	[ +this.width*1.5, +this.height*1.5 ]
-				// ])
 				.scaleExtent([0.1, 5, 4])
 				.on('zoom', () => this.chart.attr('transform', d3.event.transform)),
 
@@ -176,9 +177,8 @@ class BeatNet {
 			.attr("r",  this._opt.nodes.radius)
 			//.attr("cx", this.width/2)
 			//.attr("cy", this.height/2)
-			// .attr("cx", 0)
-			// .attr("cy", 0)
-			.attr("fill", function(d) { return d.color; });
+			.attr("fill", function(d) { return d.color; })
+			.style("cursor", "pointer"); 
 		
 		var labels = this.nodeElements.append("text")
 			.style("stroke-width", 1)
@@ -211,11 +211,15 @@ class BeatNet {
 	addNodes(nodes) {
 		this.nodes.push(...nodes);
 		this.createNodes();	
+		
+		// this.simulation
+		// 	.alphaTarget(0.6)
+		// 	.nodes(this.nodes)
+		// 	.alpha(1)
+		// 	.restart();
 		this.simulation
-			.alphaTarget(0.6)
 			.nodes(this.nodes)
-			.alpha(1)
-			.restart();
+			.on("tick", this.ticked.bind(this));
 	}
 
 
@@ -259,6 +263,9 @@ class BeatNet {
 		// this.simulation
 		// 	.force("link")
 		// 	.links(links);
+
+		this.simulation.force("link")
+			.links(channels);
 	}
 
 	ticked() {

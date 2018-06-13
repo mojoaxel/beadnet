@@ -232,10 +232,7 @@ simulation.force("link")
 	.links(links);
 
 function ticked() {
-	paths.attr("d", (d) => {
-		console.log(d);
-		return `M${d.source.x},${d.source.y} ${d.target.x},${d.target.y}`
-	});
+	paths.attr("d", (d) => `M${d.source.x},${d.source.y} ${d.target.x},${d.target.y}`);
 	node.attr("transform", (d) => `translate(${d.x},${d.y})`);
 	tickedBeads();
 }
