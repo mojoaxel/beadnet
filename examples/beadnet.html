@@ -59,14 +59,14 @@ window.onload = function () {
 		sourceBalance: 2,
 		targetBalance: 0
 	}, {
-		source: "Hub1", 
-		target: "Bob",
-		sourceBalance: 3,
-		targetBalance: 0
-	}, {
 		source: "Bob", 
 		target: "Hub2",
 		sourceBalance: 4,
+		targetBalance: 0
+	}, {
+		source: "Hub1", 
+		target: "Bob",
+		sourceBalance: 3,
 		targetBalance: 0
 	}];
 
@@ -76,7 +76,14 @@ window.onload = function () {
 	});
 
 	bn.addNodes(myNodes);
-	bn.addChannels(myChannels);
+
+
+	myChannels.forEach((channel, i) => {
+		setTimeout(() => {
+			console.log("Add channel ",i);
+			bn.addChannel(myChannels[i]);
+		}, 2000*i);
+	});
 
 };
 </script>

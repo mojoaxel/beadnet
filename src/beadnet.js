@@ -22,7 +22,9 @@ class BeatNet {
 		this.svg = d3.select(this.container)
 			.append("svg")
 			.attr("class", "beadnet");
-				
+		
+		this.updateSVGSize();
+
 		/* create svg root element called with class "chart" and initial  */
 		this.chart = this.svg.append("g")
 			.attr("class", "chart")
@@ -37,7 +39,6 @@ class BeatNet {
 
 		this.simulation = this.createSimulation();
 		
-		this.updateSVGSize();
 		this.updateSimulationCenter();
 
 		this.behaviors = this.createBehaviors();
@@ -49,25 +50,12 @@ class BeatNet {
 	}
 
 	createSimulation() {
-		// return d3.forceSimulation()
-		// .alphaDecay(0.1)
-		// //.force("link", d3.forceLink().id(function(d) { return d.id; }).strength(0.6))
-		// .force("link", d3.forceLink(this.channels).id(function(d) { return d.id; })/*.distance(20).strength(0.6)*/)
-		// .force("charge", d3.forceManyBody().strength(-10000))
-		// .on("tick", this.ticked.bind(this));
-
-		// return d3.forceSimulation()
-		// 	.alphaDecay(0.1)
-		// 	//.force("link", d3.forceLink(this.channels).id(function(d) { return d.id; })/*.distance(20).strength(0.6)*/)
-		// 	//.force("x", d3.forceX())
-		// 	//.force("y", d3.forceY())
-		// 	.force("charge", d3.forceManyBody()/*.strength(-10000)*/)
-		// 	.on("tick", this.ticked.bind(this));
-
 		return d3.forceSimulation()
-			.alphaDecay(0.1)
-			.force("link", d3.forceLink().id(function(d) { return d.id; }).strength(0.6))
-			.force("charge", d3.forceManyBody().strength(-10000));
+			.alphaDecay(0.8)
+			.force("charge", d3.forceManyBody().distanceMin(0.5*this.forceDistance).distanceMax(2*this.forceDistance))
+			.force("link", d3.forceLink(this.channels).distance(this.forceDistance))
+			.alphaTarget(1)
+			.on("tick", this.ticked.bind(this));
 	}
 
 	/**
@@ -76,6 +64,9 @@ class BeatNet {
 	updateSVGSize() {
 		this.width = +this.container.clientWidth;
 		this.height = +this.container.clientHeight;
+		
+		this.forceDistance = (this.width + this.height)*.1;
+
 		this.svg
 			.attr("width", this.width)
 			.attr("height", this.height);
@@ -162,9 +153,7 @@ class BeatNet {
 		this.nodes.push(node);
 		this.createNodes();	
 		this.simulation
-			.alphaTarget(0.6)
 			.nodes(this.nodes)
-			.alpha(1)
 			.restart();
 	}
 
@@ -173,59 +162,56 @@ class BeatNet {
 		this.createNodes();	
 		
 		// this.simulation
-		// 	.alphaTarget(0.6)
 		// 	.nodes(this.nodes)
-		// 	.alpha(1)
 		// 	.restart();
+
 		this.simulation
 			.nodes(this.nodes)
-			.on("tick", this.ticked.bind(this));
+			.force("collide", d3.forceCollide(this.forceDistance/2))
+			.restart();
 	}
 
+	updateChannels() {
+		console.log("this.channels: ", this.channels);
 
-
-	addChannels(channels) {
-		var nodeById = d3.map(this.nodes, function(d) { return d.id; });
-
-		var connections = [];
-		channels.forEach(function(channel) {
-			connections.push({
-				source: nodeById.get(channel.source), 
-				target: nodeById.get(channel.target),
-				sourceBalance: channel.sourceBalance,
-				targetBalance: channel.targetBalance
-			});
-		});
-
-		this.channels = this.channelContainer.selectAll(".channel")
-		.data(connections)
-		.enter().append("g")
-			.attr("class", "channel")
-			.attr("source-balance", (d) => {
-				console.log(d);
-				return d.sourceBalance;
-			})
-			.attr("target-balance", (d) => {
-				return d.targetBalance;
-			})
-			.attr("source-id", (d) => {
-				return d.source.id;
-			})
-			.attr("target-id", (d) => {
-				return d.target.id;
-			})
-
-		this.paths = this.channels
+		this.channelElements = this.channelContainer.selectAll(".channel").data(this.channels);
+		
+		this.channelElements.enter()
+			.append("g")
+				.attr("class", "channel")
+				.attr("source-balance", (d) => d.sourceBalance)
+				.attr("target-balance", (d) => d.targetBalance)
+				.attr("source-id", (d) => d.source.id)
+				.attr("target-id", (d) => d.target.id)
 			.append("path")
 				.style("stroke-width", this._opt.channels.strokeWidth)
 				.style("stroke", this._opt.channels.color);
+		
+		this.paths = this.channelContainer.selectAll(".channel path")
 
-		// this.simulation
-		// 	.force("link")
-		// 	.links(links);
+		this.channelElements.exit().remove()
+	}
 
-		this.simulation.force("link")
-			.links(channels);
+	addChannel(channel) {
+		var nodeById = d3.map(this.nodes, function(d) { return d.id; });
+		this.channels.push({
+			source: nodeById.get(channel.source), 
+			target: nodeById.get(channel.target),
+			sourceBalance: channel.sourceBalance,
+			targetBalance: channel.targetBalance
+		});
+		
+		this.updateChannels();
+
+		this.simulation.force("link").links(this.channels)
+		
+		this.simulation.alpha(1).restart();
+
+	//	this.simulation.restart();
+	}
+
+	addChannels(channels) {
+		channels.forEach((channel) => this.addChannel(channel));
 	}
 
 	ticked() {
@@ -239,11 +225,11 @@ class BeatNet {
 	}
 
 	onDragStart(d) {
-		//if (!d3.event.active) {
+		if (!d3.event.active) {
 			this.simulation
 				.alphaTarget(0.6)
 				.restart();
-		//}
+		}
 		d.fx = d.x;
 		d.fy = d.y;
 	}
@@ -254,10 +240,10 @@ class BeatNet {
 	}
 	
 	onDragendEnd(d) {
-		//if (!d3.event.active) { 
+		if (!d3.event.active) { 
 			this.simulation
 				.alphaTarget(0);
-		//}
+		}
 		d.fx = null;
 		d.fy = null;
 	}
