@@ -48,7 +48,7 @@ window.onload = function () {
 		balance: 4
 	}];
 
-	var channels = [{
+	var myChannels = [{
 		source: "Alice", 
 		target: "Hub1",
 		sourceBalance: 1,
@@ -76,6 +76,7 @@ window.onload = function () {
 	});
 
 	bn.addNodes(myNodes);
+	bn.addChannels(myChannels);
 
 };
 </script>

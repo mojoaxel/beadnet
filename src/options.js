@@ -12,6 +12,12 @@ const defaultOptions = {
 		color: null,
 		strokeWidth: 3,
 		strokeColor: null,
+	},
+
+	channels: {
+		color: 'lightgray',
+		strokeWidth: 3,
+		strokeColor: null,
 	}
 };
 

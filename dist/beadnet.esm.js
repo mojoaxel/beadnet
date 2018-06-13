@@ -17,6 +17,12 @@ const defaultOptions = {
 		color: null,
 		strokeWidth: 3,
 		strokeColor: null,
+	},
+
+	channels: {
+		color: 'lightgray',
+		strokeWidth: 3,
+		strokeColor: null,
 	}
 };
 
@@ -63,11 +69,11 @@ class BeatNet {
 			.attr("transform", "translate(0,0) scale(1)");
 
 		/* create a SVG-container-element for all nodes and all channels */
+		this.channelContainer = this.chart.append("g").attr("class", "channels");
 		this.nodeContainer = this.chart.append("g").attr("class", "nodes");
-		this.linkContainer = this.chart.append("g").attr("class", "channels");
 		
 		this.nodes = [];
-		this.links = [];
+		this.channels = [];
 
 		this.simulation = this.createSimulation();
 		this.updateSimulationCenter();
@@ -78,14 +84,21 @@ class BeatNet {
 		this.svg.call(this.behaviors.zoom);
 
 		this.createNodes();
-
+		
 		window.addEventListener("resize", this.onResize.bind(this));
 	}
 
 	createSimulation() {
-		return d3.forceSimulation(this.nodes)
+		// return d3.forceSimulation()
+		// .alphaDecay(0.1)
+		// //.force("link", d3.forceLink().id(function(d) { return d.id; }).strength(0.6))
+		// .force("link", d3.forceLink(this.channels).id(function(d) { return d.id; })/*.distance(20).strength(0.6)*/)
+		// .force("charge", d3.forceManyBody().strength(-10000))
+		// .on("tick", this.ticked.bind(this));
+
+		return d3.forceSimulation()
 			.alphaDecay(0.1)
-			.force("link", d3.forceLink(this.links).id(function(d) { return d.id; }).distance(20).strength(0.6))
+			//.force("link", d3.forceLink(this.channels).id(function(d) { return d.id; })/*.distance(20).strength(0.6)*/)
 			//.force("x", d3.forceX())
 			//.force("y", d3.forceY())
 			.force("charge", d3.forceManyBody()/*.strength(-10000)*/)
@@ -161,8 +174,10 @@ class BeatNet {
 		var circle = this.nodeElements.append("circle")
 			.attr("class", "node")
 			.attr("r",  this._opt.nodes.radius)
-			.attr("cx", this.width/2)
-			.attr("cy", this.height/2)
+			//.attr("cx", this.width/2)
+			//.attr("cy", this.height/2)
+			// .attr("cx", 0)
+			// .attr("cy", 0)
 			.attr("fill", function(d) { return d.color; });
 		
 		var labels = this.nodeElements.append("text")
@@ -184,8 +199,7 @@ class BeatNet {
 	}
 
 	addNode(node) {
-		//this.nodes.push(node);
-		this.nodes = node;
+		this.nodes.push(node);
 		this.createNodes();	
 		this.simulation
 			.alphaTarget(0.6)
@@ -194,10 +208,67 @@ class BeatNet {
 			.restart();
 	}
 
+	addNodes(nodes) {
+		this.nodes.push(...nodes);
+		this.createNodes();	
+		this.simulation
+			.alphaTarget(0.6)
+			.nodes(this.nodes)
+			.alpha(1)
+			.restart();
+	}
+
+
+
+	addChannels(channels) {
+		var nodeById = d3.map(this.nodes, function(d) { return d.id; });
+
+		var connections = [];
+		channels.forEach(function(channel) {
+			connections.push({
+				source: nodeById.get(channel.source), 
+				target: nodeById.get(channel.target),
+				sourceBalance: channel.sourceBalance,
+				targetBalance: channel.targetBalance
+			});
+		});
+
+		this.channels = this.channelContainer.selectAll(".channel")
+		.data(connections)
+		.enter().append("g")
+			.attr("class", "channel")
+			.attr("source-balance", (d) => {
+				console.log(d);
+				return d.sourceBalance;
+			})
+			.attr("target-balance", (d) => {
+				return d.targetBalance;
+			})
+			.attr("source-id", (d) => {
+				return d.source.id;
+			})
+			.attr("target-id", (d) => {
+				return d.target.id;
+			});
+
+		this.paths = this.channels
+			.append("path")
+				.style("stroke-width", this._opt.channels.strokeWidth)
+				.style("stroke", this._opt.channels.color);
+
+		// this.simulation
+		// 	.force("link")
+		// 	.links(links);
+	}
+
 	ticked() {
-		//this.paths.attr("d", (d) => `M${d.source.x},${d.source.y} ${d.target.x},${d.target.y}`);
-		this.nodeElements.attr("transform", (d) => `translate(${d.x},${d.y})`);
-		//	tickedBeads();
+		if (this.nodeElements) {
+			this.nodeElements.attr("transform", (d) => `translate(${d.x},${d.y})`);
+		}
+		if (this.paths) {
+			this.paths.attr("d", (d) => `M${d.source.x},${d.source.y} ${d.target.x},${d.target.y}`);
+		}
+		//tickedBeads();
 	}
 
 	onDragStart(d) {
