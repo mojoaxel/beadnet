@@ -92,7 +92,7 @@ class BeatNet {
 	createSimulation() {
 		return d3.forceSimulation()
 			.alphaDecay(0.8)
-			.force("charge", d3.forceManyBody().distanceMin(0.5*this.forceDistance).distanceMax(2*this.forceDistance))
+			.force("charge", d3.forceManyBody().strength(-5000).distanceMin(0.5*this.forceDistance).distanceMax(2*this.forceDistance))
 			.force("link", d3.forceLink(this.channels).distance(this.forceDistance))
 			.alphaTarget(1)
 			.on("tick", this.ticked.bind(this));
@@ -144,6 +144,7 @@ class BeatNet {
 		this.simulation
 			.force("center", d3.forceCenter(centerX, centerY))
 			.restart();
+
 	}
 
 	/**
@@ -190,20 +191,12 @@ class BeatNet {
 	}
 
 	addNode(node) {
+		
+		node.channelCount = 0;
+		console.log("addNode: ", node);
+
 		this.nodes.push(node);
 		this.createNodes();	
-		this.simulation
-			.nodes(this.nodes)
-			.restart();
-	}
-
-	addNodes(nodes) {
-		this.nodes.push(...nodes);
-		this.createNodes();	
-		
-		// this.simulation
-		// 	.nodes(this.nodes)
-		// 	.restart();
 
 		this.simulation
 			.nodes(this.nodes)
@@ -211,9 +204,23 @@ class BeatNet {
 			.restart();
 	}
 
-	updateChannels() {
-		console.log("this.channels: ", this.channels);
+	addNodes(nodes) {
+		nodes = nodes.map((node) => {
+			node.channelCount = 0;
+			return node;
+		});
 
+		this.nodes.push(...nodes);
+		
+		this.createNodes();	
+		
+		this.simulation
+			.nodes(this.nodes)
+			.force("collide", d3.forceCollide(this.forceDistance/6))
+			.restart();
+	}
+
+	updateChannels() {
 		this.channelElements = this.channelContainer.selectAll(".channel").data(this.channels);
 		
 		this.channelElements.enter()
@@ -225,7 +232,8 @@ class BeatNet {
 				.attr("target-id", (d) => d.target.id)
 			.append("path")
 				.style("stroke-width", this._opt.channels.strokeWidth)
-				.style("stroke", this._opt.channels.color);
+				.style("stroke", this._opt.channels.color)
+				.style("fill", "none");
 		
 		this.paths = this.channelContainer.selectAll(".channel path");
 
@@ -234,12 +242,18 @@ class BeatNet {
 
 	addChannel(channel) {
 		var nodeById = d3.map(this.nodes, function(d) { return d.id; });
+		var source = nodeById.get(channel.source);
+		var target = nodeById.get(channel.target);
 		this.channels.push({
-			source: nodeById.get(channel.source), 
-			target: nodeById.get(channel.target),
+			source: source, 
+			target: target,
 			sourceBalance: channel.sourceBalance,
 			targetBalance: channel.targetBalance
 		});
+
+		source.channelCount = source.channelCount + 1;
+		target.channelCount = target.channelCount + 1;
+		console.log("addChannel: ", source);
 		
 		this.updateChannels();
 
@@ -254,12 +268,23 @@ class BeatNet {
 		channels.forEach((channel) => this.addChannel(channel));
 	}
 
+	getRandomNode() {
+		return this.nodes[Math.floor(Math.random() * this.nodes.length)];
+	}
+
 	ticked() {
 		if (this.nodeElements) {
 			this.nodeElements.attr("transform", (d) => `translate(${d.x},${d.y})`);
 		}
 		if (this.paths) {
 			this.paths.attr("d", (d) => `M${d.source.x},${d.source.y} ${d.target.x},${d.target.y}`);
+
+			// this.paths.attr("d", (d) => {
+			// 	var dx = d.target.x - d.source.x;
+			// 	var dy = d.target.y - d.source.y;
+			// 	var dr = Math.sqrt((dx*dx+d.source.channelCount) + (dy*dy+d.target.channelCount));
+			// 	return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
+			// });
 		}
 		//tickedBeads();
 	}
@@ -267,7 +292,7 @@ class BeatNet {
 	onDragStart(d) {
 		if (!d3.event.active) {
 			this.simulation
-				.alphaTarget(0.6)
+				.alphaTarget(0.5)
 				.restart();
 		}
 		d.fx = d.x;

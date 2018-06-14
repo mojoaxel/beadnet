@@ -13,13 +13,26 @@ body, html {
 	position: absolute;
 	top: 0;
 	left: 0;
-	bottom: 0;
+	bottom: 20%;
 	right: 0;
+}
+#controls {
+	background: lightgray;
+	position: absolute;
+	top: 80%;
+	left: 0;
+	bottom: 0%;
+	right: 0;
+	padding: 1em;
 }
 </style>
 </head>
 <body>
 <div id="beadnet"></div>
+<div id="controls">
+	<button id="addChannel">Add Channel</button>
+	<button id="addRandomChannel">Add random channel</button>
+</div>
 
 <script src="../node_modules/d3/dist/d3.js"></script>
 <script src="../node_modules/async/dist/async.js"></script>
@@ -34,6 +47,10 @@ window.onload = function () {
 		id: "Alice",
 		color: colors(3),
 		balance: 2
+	}, { 
+		id: "Bob",
+		color: colors(6),
+		balance: 4
 	}, {
 		id: "Hub1",
 		color: colors(4),
@@ -42,10 +59,6 @@ window.onload = function () {
 		id: "Hub2",
 		color: colors(5),
 		balance: 20
-	}, { 
-		id: "Bob",
-		color: colors(6),
-		balance: 4
 	}];
 
 	var myChannels = [{
@@ -77,13 +90,34 @@ window.onload = function () {
 
 	bn.addNodes(myNodes);
 
+	bn.addChannels(myChannels);
 
-	myChannels.forEach((channel, i) => {
-		setTimeout(() => {
-			console.log("Add channel ",i);
-			bn.addChannel(myChannels[i]);
-		}, 2000*i);
+	var i = 0;
+	var btnAddChannel = document.querySelector('button#addChannel');
+	btnAddChannel.addEventListener('click', function() {
+		bn.addChannel(myChannels[i]);
+		i++
 	});
+
+	
+	var btnAddChannel = document.querySelector('button#addRandomChannel');
+	btnAddChannel.addEventListener('click', function() {
+		var nodeA = bn.getRandomNode();
+		var nodeB = bn.getRandomNode();
+		bn.addChannel({
+			source: nodeA.id, 
+			target: nodeB.id,
+			sourceBalance: Math.floor(Math.random()*10),
+			targetBalance: 0
+		});
+	});
+
+	// myChannels.forEach((channel, i) => {
+	// 	setTimeout(() => {
+	// 		console.log("Add channel ",i);
+	// 		bn.addChannel(myChannels[i]);
+	// 	}, 2000*i);
+	// });
 
 };
 </script>
