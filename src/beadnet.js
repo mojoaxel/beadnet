@@ -51,10 +51,14 @@ class BeatNet {
 
 	createSimulation() {
 		return d3.forceSimulation()
-			.alphaDecay(0.8)
-			.force("charge", d3.forceManyBody().strength(-5000).distanceMin(0.5*this.forceDistance).distanceMax(2*this.forceDistance))
+			.alphaDecay(0.1)
+			//.force("x", d3.forceX().strength(0))
+			//.force("y", d3.forceY().strength(1))
+			.force("charge", d3.forceManyBody().strength(-2000).distanceMin(1*this.forceDistance).distanceMax(3*this.forceDistance))
+			.force("collide", d3.forceCollide(this.forceDistance/1))
 			.force("link", d3.forceLink(this.channels).distance(this.forceDistance))
-			.alphaTarget(1)
+			.force("center", d3.forceCenter(this.width / 2, this.height / 2))
+			.alphaTarget(0)
 			.on("tick", this.ticked.bind(this));
 	}
 
@@ -64,9 +68,7 @@ class BeatNet {
 	updateSVGSize() {
 		this.width = +this.container.clientWidth;
 		this.height = +this.container.clientHeight;
-		
 		this.forceDistance = (this.width + this.height)*.1;
-
 		this.svg
 			.attr("width", this.width)
 			.attr("height", this.height);
@@ -104,7 +106,6 @@ class BeatNet {
 		this.simulation
 			.force("center", d3.forceCenter(centerX, centerY))
 			.restart();
-
 	}
 
 	/**
@@ -133,14 +134,15 @@ class BeatNet {
 			.style("cursor", "pointer"); 
 		
 		var labels = this.nodeElements.append("text")
-			.style("stroke-width", 1)
+			.style("stroke-width", 0.5)
 			.attr("stroke", this._opt.nodes.strokeColor)
 			.attr("fill", this._opt.nodes.strokeColor)
 			.attr("font-family", "sans-serif")
-			.attr("font-size", "12px")
+			.attr("font-size", "15px")
+			.attr("y", "5px")
 			.attr("text-anchor", "middle")
 			.attr("pointer-events", "none")
-			.text((d) => d.balance);
+			.text((d) => d.balance || d.id);
 
 		this.nodeElements.append("title")
 			.text(function(d) { return d.id; });
@@ -153,20 +155,21 @@ class BeatNet {
 	addNode(node) {
 		
 		node.channelCount = 0;
-		console.log("addNode: ", node);
+		node.color = node.color || this._opt.colorScheme(this.nodes.length % 10);
 
 		this.nodes.push(node);
 		this.createNodes();	
 
 		this.simulation
 			.nodes(this.nodes)
-			.force("collide", d3.forceCollide(this.forceDistance/2))
+			//.force("collide", d3.forceCollide(this.forceDistance/2))
 			.restart();
 	}
 
 	addNodes(nodes) {
-		nodes = nodes.map((node) => {
+		nodes = nodes.map((node, i) => {
 			node.channelCount = 0;
+			node.color = node.color || this._opt.colorScheme(i % 10);
 			return node;
 		})
 
@@ -176,7 +179,7 @@ class BeatNet {
 		
 		this.simulation
 			.nodes(this.nodes)
-			.force("collide", d3.forceCollide(this.forceDistance/6))
+			//.force("collide", d3.forceCollide(this.forceDistance/2))
 			.restart();
 	}
 
@@ -252,7 +255,7 @@ class BeatNet {
 	onDragStart(d) {
 		if (!d3.event.active) {
 			this.simulation
-				.alphaTarget(0.5)
+				.alphaTarget(0.1)
 				.restart();
 		}
 		d.fx = d.x;

@@ -30,6 +30,7 @@ body, html {
 <body>
 <div id="beadnet"></div>
 <div id="controls">
+	<button id="addNode">Add Node</button>
 	<button id="addChannel">Add Channel</button>
 	<button id="addRandomChannel">Add random channel</button>
 </div>
@@ -88,15 +89,22 @@ window.onload = function () {
 		colorScheme: colors
 	});
 
-	bn.addNodes(myNodes);
+	// bn.addNodes(myNodes);
 
-	bn.addChannels(myChannels);
+	// bn.addChannels(myChannels);
 
-	var i = 0;
+	var n = 2;
+	var btnAddNode = document.querySelector('button#addNode');
+	btnAddNode.addEventListener('click', function() {
+		bn.addNode(myNodes[n]);
+		n++
+	});
+
+	var c = 0;
 	var btnAddChannel = document.querySelector('button#addChannel');
 	btnAddChannel.addEventListener('click', function() {
-		bn.addChannel(myChannels[i]);
-		i++
+		bn.addChannel(myChannels[c]);
+		c++
 	});
 
 	
@@ -118,6 +126,24 @@ window.onload = function () {
 	// 		bn.addChannel(myChannels[i]);
 	// 	}, 2000*i);
 	// });
+
+
+
+
+	bn.addNodes([{
+		id: "Alice"
+	},{
+		id: "Bob"
+	},{
+		id: "Hub"
+	}]);
+
+	// bn.addChannel({
+	// 	source: "Alice", 
+	// 	target: "Bob",
+	// 	sourceBalance: 1,
+	// 	targetBalance: 0
+	// })
 
 };
 </script>

@@ -8,7 +8,7 @@ const defaultOptions = {
 	},
 
 	nodes: {
-		radius: 20,
+		radius: 30,
 		color: null,
 		strokeWidth: 3,
 		strokeColor: null,
