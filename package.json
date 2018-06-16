@@ -5,7 +5,7 @@
   "module": "dist/beadnet.esm.js",
   "browser": "dist/beadnet.standalone.min.js",
   "scripts": {
-    "examples": "reload -p 9293 -e .js,.json,.html,.css -b --start-page ./examples/index.html",
+    "webserver": "reload -p 9293 -e .js,.json,.html,.css -b --start-page ./index.html",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "test": "mocha",
