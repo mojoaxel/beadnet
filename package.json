@@ -42,8 +42,7 @@
   "dependencies": {
     "async": "^2.6.1",
     "d3": "^5.4.0",
-    "loglevel": "^1.6.1",
-    "random-id": "0.0.2"
+    "loglevel": "^1.6.1"
   },
   "peerDependencies": {
     "d3": "4"

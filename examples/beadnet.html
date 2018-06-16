@@ -93,11 +93,10 @@ window.onload = function () {
 
 	// bn.addChannels(myChannels);
 
-	var n = 2;
 	var btnAddNode = document.querySelector('button#addNode');
 	btnAddNode.addEventListener('click', function() {
-		bn.addNode(myNodes[n]);
-		n++
+		var node = bn.createRandomNode();
+		bn.addNode(node);
 	});
 
 	var c = 0;
@@ -110,14 +109,8 @@ window.onload = function () {
 	
 	var btnAddChannel = document.querySelector('button#addRandomChannel');
 	btnAddChannel.addEventListener('click', function() {
-		var nodeA = bn.getRandomNode();
-		var nodeB = bn.getRandomNode();
-		bn.addChannel({
-			source: nodeA.id, 
-			target: nodeB.id,
-			sourceBalance: Math.floor(Math.random()*10),
-			targetBalance: 0
-		});
+		var channel = bn.createRandomChannel();
+		bn.addChannel(channel)
 	});
 
 	// myChannels.forEach((channel, i) => {
@@ -144,6 +137,8 @@ window.onload = function () {
 	// 	sourceBalance: 1,
 	// 	targetBalance: 0
 	// })
+
+	
 
 };
 </script>
