@@ -30,23 +30,18 @@ window.onload = function () {
 
 	var colors = d3.scaleOrdinal(d3.schemeCategory10);
 
-
-	var bn = new beadnet();
+	// initialize BeadNet
+	var bn = new BeadNet();
 	bn.createSVG({
 		colorScheme: colors
 	});
 
-	// bn.addNode({
-	// 	id: "Alice"
-	// })
-	// bn.addNode({
-	// 	id: "Bob"
-	// })
-
+	// add one single node
 	bn.addNode({
 	 	id: "Alice"
-	})
+	});
 
+	// add mutiple nodes at the same time
 	bn.addNodes([{
 		id: "Hub1"
 	}, { 
@@ -55,16 +50,17 @@ window.onload = function () {
 		id: "Hub3"
 	}]);
 
- setInterval(() => {
-	var rand = Math.random();
-	if (rand >= 0.5) {
-		var node = bn.getRandomNode()
-		bn.removeNode(node.id);
-	} else {
-		var node = bn.createRandomNode();
-		bn.addNode(node);
-	}
- },1000);
+ // randomly add and remove nodes
+	setInterval(() => {
+		var rand = Math.random();
+		if (rand >= 0.5) {
+			var node = bn.getRandomNode()
+			bn.removeNode(node.id);
+		} else {
+			var node = bn.createRandomNode();
+			bn.addNode(node);
+		}
+	},1000);
 
 };
 </script>

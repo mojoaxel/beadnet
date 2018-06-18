@@ -2,7 +2,7 @@ import getName from './namegenerator.js';
 import log from './logger.js';
 import extendDefaultOptions from './options.js';
 
-class BeatNet {
+class BeadNet {
 
 	/**
 	 * TODO
@@ -332,4 +332,4 @@ class BeatNet {
 	}
 }
 
-export default BeatNet;
+export default BeadNet;

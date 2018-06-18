@@ -55,7 +55,7 @@ function extendDefaultOptions(options) {
 	return opt;
 }
 
-class BeatNet {
+class BeadNet {
 
 	/**
 	 * TODO
@@ -385,4 +385,4 @@ class BeatNet {
 	}
 }
 
-export default BeatNet;
+export default BeadNet;
