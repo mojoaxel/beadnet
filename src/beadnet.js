@@ -62,15 +62,15 @@ class Beadnet {
 			// .force("link", d3.forceLink(this._channels).distance(this.forceDistance))
 			// .force("center", d3.forceCenter(this.width / 2, this.height / 2))
 			// .alphaTarget(0)
-			// .on("tick", this.ticked.bind(this));
+			// .on("tick", this._ticked.bind(this));
 
 		return d3.forceSimulation(this._nodes)
 			.force("charge", d3.forceManyBody().strength(-5000))
-			.force("link", d3.forceLink(this._channels).distance(this.forceDistance))
+			.force("link", d3.forceLink(this._channels).strength(0.1).distance(this.forceDistance))
 			.force("x", d3.forceX())
 			.force("y", d3.forceY())
 			.alphaTarget(0.1)
-			.on("tick", this.ticked.bind(this));
+			.on("tick", this._ticked.bind(this));
 	}
 
 	/**
@@ -105,9 +105,9 @@ class Beadnet {
 				.on('zoom', () => this.chart.attr('transform', d3.event.transform)),
 
 			drag: d3.drag()
-				.on("start", this.onDragStart.bind(this))
-				.on("drag", this.onDragged.bind(this))
-				.on("end", this.onDragendEnd.bind(this))
+				.on("start", this._onDragStart.bind(this))
+				.on("drag", this._onDragged.bind(this))
+				.on("end", this._onDragendEnd.bind(this))
 		}
 	}
 
@@ -223,13 +223,17 @@ class Beadnet {
 	};
 
 	/**
-	 * TODO: createRandomNode
+	 * Create new nodes with random names.
+	 * @param {Integer} [count=1] - how many nodes.
 	 * @returns {Node}
 	 */
-	createRandomNode() {
-		return {
-			id: getName()
+	createRandomNodes(count) {
+		if ((typeof count !== "undefined" && typeof count !== "number") || count < 0) {
+			throw new TypeError('parameter count must be a positive number');
 		}
+		return Array.from(new Array(count), (x) => {
+			id: getName()
+		});
 	}
 
 	/**
@@ -264,8 +268,8 @@ class Beadnet {
 				.style("stroke", this._opt.channels.color)
 				.style("fill", "none");
 		
-		/* update this.paths; needed in this.ticked */
-		this.paths = this.channelContainer.selectAll(".channel path")
+		/* update this.paths; needed in this._ticked */
+		this.paths = this.channelContainer.selectAll(".channel path");
 
 		return this._channelElements;
 	}
@@ -295,10 +299,19 @@ class Beadnet {
 		this.simulation.alpha(1).restart();
 	}
 
+	/**
+	 * TODO: 
+	 * @param {*} channels 
+	 * @returns TODO:
+	 */
 	addChannels(channels) {
 		channels.forEach((channel) => this.addChannel(channel));
 	}
 
+	/**
+	 * TODO: 
+	 * @returns TODO:
+	 */
 	createRandomChannel() {
 		var source = this.getRandomNode();
 		var target = this.getRandomNode();
@@ -312,7 +325,29 @@ class Beadnet {
 		};
 	}
 
-	ticked() {
+	/**
+	* TODO:
+	*/
+	getRandomChannel() {
+		return this._channels[Math.floor(Math.random() * this._channels.length)];
+	}
+
+	/**
+	 * TODO: 
+	 * @returns TODO:
+	 */
+	removeChannel(source, target) {
+		this._channels = this._channels.filter((channel) => (channel.source !== source && channel.target !== target));
+		this._updateChannels();	
+		
+		return this;
+	}
+
+	/**
+	 * TODO: 
+	 * @private
+	 */
+	_ticked() {
 		if (this.nodeElements) {
 			this.nodeElements.attr("transform", (data) => `translate(${data.x},${data.y})`);
 		}
@@ -331,10 +366,14 @@ class Beadnet {
 				}
 			});
 		}
-		//tickedBeads();
+		//_tickedBeads();
 	}
 
-	onDragStart(d) {
+	/**
+	 * TODO: 
+	 * @private
+	 */
+	_onDragStart(d) {
 		if (!d3.event.active) {
 			this.simulation
 				.alphaTarget(0.1)
@@ -344,12 +383,20 @@ class Beadnet {
 		d.fy = d.y;
 	}
 	
-	onDragged(d) {
+	/**
+	 * TODO: 
+	 * @private
+	 */
+	_onDragged(d) {
 		d.fx = d3.event.x; 
 		d.fy = d3.event.y;
 	}
 	
-	onDragendEnd(d) {
+	/**
+	 * TODO: 
+	 * @private
+	 */
+	_onDragendEnd(d) {
 		if (!d3.event.active) { 
 			this.simulation
 				.alphaTarget(0);

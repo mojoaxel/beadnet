@@ -21,10 +21,10 @@ body, html {
 <body>
 <div id="beadnet"></div>
 
-<script src="../node_modules/d3/dist/d3.js"></script>
-<script src="../node_modules/async/dist/async.js"></script>
+<script src="../../node_modules/d3/dist/d3.js"></script>
+<script src="../../node_modules/async/dist/async.js"></script>
 
-<script src="../dist/beadnet.standalone.min.js"></script>
+<script src="../../dist/beadnet.standalone.min.js"></script>
 <script>
 window.onload = function () {
 
@@ -55,11 +55,15 @@ window.onload = function () {
 		if (rand >= 0.5) {
 			// remove a random node
 			var node = bn.getRandomNode()
-			bn.removeNode(node.id);
+			if (node) {
+				bn.removeNode(node.id);
+			}
 		} else {
 			// create a new a random node and add it
-			var node = bn.createRandomNode();
-			bn.addNode(node);
+			var node = bn.createRandomNodes();
+			if (node) {
+				bn.addNode(node);
+			}
 		}
 	},1000);
 
