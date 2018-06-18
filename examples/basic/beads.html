@@ -35,25 +35,46 @@ window.onload = function () {
 		colorScheme: colors
 	});
 
-	// add 10 random nodes
-	bn.addNodes(bn.createRandomNodes(10));
+	// add mutiple nodes at the same time
+	bn.addNodes([{
+		id: "Bob"
+	}, { 
+		id: "Hub"
+	}, { 
+		id: "Alice"
+	}])
+	
+	bn.addChannels([{
+		source: "Alice",
+		target: "Hub",
+		sourceBalance: 4,
+		targetBalance: 1
+	}, {
+		source: "Hub",
+		target: "Bob",
+		sourceBalance: 3,
+		targetBalance: 0
+	}]);
 
-	setInterval(() => {
-		var rand = Math.random();
-		if (rand >= 0.8 || bn.getChannelCount() > 20) {
-			// remove a random channel
-			var channel = bn.getRandomChannel();
-			if (channel) {
-				//bn.removeChannel(channel.source.id, channel.target.id);
-			}
-		} else {
-			// create a new a random channel and add it
-			var channels = bn.createRandomChannels(1, true);
-			if (channels) {
-				bn.addChannels(channels);
-			}
-		}
-	}, 100, bn);
+	try {
+		setTimeout(function() { 
+			bn.moveBeads("Alice", "Hub", 2);
+		}, 2000);
+
+		setTimeout(function() { 
+			bn.moveBeads("Hub", "Bob", 2);
+		}, 5000);
+
+		setTimeout(function() { 
+			bn.moveBeads("Bob", "Hub", 1);
+		}, 10000);
+
+		setTimeout(function() { 
+			bn.moveBeads("Hub", "Alice", 1);
+		}, 12000);
+	} catch(e) {
+		console.warn(e);
+	}
 
 };
 </script>
