@@ -2,21 +2,19 @@ import getName from './namegenerator.js';
 import log from './logger.js';
 import extendDefaultOptions from './options.js';
 
-class BeadNet {
+/**
+ * TODO:
+ */
+class Beadnet {
 
 	/**
-	 * TODO
-	 * @param {*} options 
+	 * Create a new BeadNet chart.
+	 * @param {Object} options 
 	 */
 	constructor(options) {
 		this._opt = extendDefaultOptions(options);
 		log.debug("initializing beadnet with options: ", this._opt);
-	}
 
-	/**
-	 * TODO
-	 */
-	createSVG() {
 		/* find the parent container DOM element and insert an SVG */
 		this.container = document.querySelector(this._opt.container.selector);
 		this.svg = d3.select(this.container)
@@ -37,7 +35,7 @@ class BeadNet {
 		this._nodes = [];
 		this._channels = [];
 
-		this.simulation = this.createSimulation();
+		this.simulation = this._createSimulation();
 		
 		this.updateSimulationCenter();
 
@@ -49,7 +47,11 @@ class BeadNet {
 		window.addEventListener("resize", this.onResize.bind(this));
 	}
 
-	createSimulation() {
+	/**
+	 * @returns {d3.forceSimulation} simulation
+	 * @private
+	 */
+	_createSimulation() {
 		// return d3.forceSimulation()
 			//.nodes(this._nodes)
 			// .alphaDecay(0.1)
@@ -176,6 +178,7 @@ class BeadNet {
 	 * Adds a new node to the network.
 	 * 
 	 * @param {Node} node 
+	 * @returns {BeatNet}
 	 */
 	addNode(node) {
 		node = node || {};
@@ -196,7 +199,8 @@ class BeadNet {
 	/**
 	 * Adds multible new nodes to the network.
 	 * 
-	 * @param {Array<Node>} nodes 
+	 * @param {Array<Node>} nodes
+	 * @returns {BeatNet}
 	 */
 	addNodes(nodes) {
 		nodes.forEach((node) => this.addNode(node));
@@ -209,6 +213,7 @@ class BeadNet {
 	 * Removes a the node with the given id from the network.
 	 * 
 	 * @param {String} nodeId 
+	 * @returns {BeatNet}
 	 */
 	removeNode(nodeId) {
 		this._nodes = this._nodes.filter(node => node.id != nodeId);
@@ -217,19 +222,36 @@ class BeadNet {
 		return this;
 	};
 
+	/**
+	 * TODO: createRandomNode
+	 * @returns {Node}
+	 */
 	createRandomNode() {
 		return {
 			id: getName()
 		}
 	}
 
+	/**
+	 * TODO: getRandomNode
+	 * @returns {Node}
+	 */
 	getRandomNode() {
 		return this._nodes[Math.floor(Math.random() * this._nodes.length)];
 	}
 
+	/**
+	 * TODO:
+	 * @private
+	 * @returns {d3.selection} this._channelElements
+	 */
 	_updateChannels() {
 		this._channelElements = this.channelContainer.selectAll(".channel").data(this._channels);
-		
+
+		/* remove channels that no longer exist */
+		this._channelElements.exit().remove()
+
+		/* create new svg elements for new channels */
 		this._channelElements.enter()
 			.append("g")
 				.attr("class", "channel")
@@ -242,11 +264,16 @@ class BeadNet {
 				.style("stroke", this._opt.channels.color)
 				.style("fill", "none");
 		
+		/* update this.paths; needed in this.ticked */
 		this.paths = this.channelContainer.selectAll(".channel path")
 
-		this._channelElements.exit().remove()
+		return this._channelElements;
 	}
 
+	/**
+	 * TODO: addChannel
+	 * @param {Channel} channel 
+	 */
 	addChannel(channel) {
 		var nodeById = d3.map(this._nodes, function(d) { return d.id; });
 		var source = nodeById.get(channel.source);
@@ -332,4 +359,4 @@ class BeadNet {
 	}
 }
 
-export default BeadNet;
+export default Beadnet;
