@@ -2,7 +2,7 @@ import log from 'loglevel';
 
 let names = ["Lester","Margot","Abdul","Avery","Clara","Ewald","Kendall", "Leda","Dawn","Quinn","Dane","Buster","Carlee","Maud","Jacey","Samara", "Alene","Kaylin","Hubert","Al","Franco","Mervin","Neha","Kole","Candida","Enoch", "Pansy","Ryder","Mabel","Tavares","Landen","Bryon", "Dayne","Derek","Kyla","Estevan","Orval","Violette","Daija", "Stella","Zelma","Robyn","Colby","Joyce","Cruz","Pedro","Leanna", "Emanuel","Hans","Randal","Ivy","Marco", "Abbey","Shea","Ethan","Novella","Abel","Kale","Irma","Esther","Ransom","Glennie", "Edmund","Aric","Aiyana","Trenton","Dana","Wade","Tyrell","Timmy","Dudley","Macy", "Marilie","Kaley","Gayle","Eda","Max","Kaitlyn","Josie","Lea","Nico","Marc"];
 
-function getName(options) {
+function getName() {
 	return names[Math.floor(Math.random()*names.length)];
 }
 
@@ -23,11 +23,14 @@ const defaultOptions = {
 		color: null,
 		strokeWidth: 3,
 		strokeColor: null,
+
+		/* ['id', 'balance'] */
+		text: 'id'
 	},
 
 	channels: {
-		color: 'lightgray',
-		strokeWidth: 3,
+		color: 'gray',
+		strokeWidth: 6,
 		strokeColor: null,
 	}
 };
@@ -92,6 +95,15 @@ class Beadnet {
 	}
 
 	/**
+	 * Return the node element with the given id.
+	 * @param {String} id - the id of the node to find.
+	 * @returns {Node|undefinded}
+	 */
+	_getNodeById(id) {
+		return d3.map(this._nodes, (d) => { return d.id; }).get(id);
+	}
+
+	/**
 	 * @returns {d3.forceSimulation} simulation
 	 * @private
 	 */
@@ -110,7 +122,7 @@ class Beadnet {
 
 		return d3.forceSimulation(this._nodes)
 			.force("charge", d3.forceManyBody().strength(-5000))
-			.force("link", d3.forceLink(this._channels).strength(-10).distance(this.forceDistance))
+			.force("link", d3.forceLink(this._channels).strength(0.01).distance(this.forceDistance))
 			.force("x", d3.forceX())
 			.force("y", d3.forceY())
 			.alphaTarget(0.1)
@@ -199,10 +211,10 @@ class Beadnet {
 			.attr("y", "5px")
 			.attr("text-anchor", "middle")
 			.attr("pointer-events", "none")
-			.text((d) => d.balance || d.id);
+			.text((d) => d[this._opt.nodes.text]);
 
 		nodeParent.append("title")
-			.text(function(d) { return d.id; });
+			.text((d) => d.id);
 		
 		nodeParent
 			.call(this.behaviors.drag);
@@ -276,6 +288,10 @@ class Beadnet {
 			throw new TypeError('parameter count must be a positive number');
 		}
 		return Array.from(new Array(count), (x) => {
+			return {
+				id: getName(),
+				balance: Math.floor(Math.random()*10)
+			};
 		});
 	}
 
@@ -321,10 +337,8 @@ class Beadnet {
 	 * TODO: addChannel
 	 * @param {Channel} channel 
 	 */
-	addChannel(channel) {
-		var nodeById = d3.map(this._nodes, function(d) { return d.id; });
-		var source = nodeById.get(channel.source);
-		var target = nodeById.get(channel.target);
+	addChannel(channel) {		var source = this._getNodeById(channel.source);
+		var target = this._getNodeById(channel.target);
 		this._channels.push({
 			source: source, 
 			target: target,
@@ -351,21 +365,25 @@ class Beadnet {
 		channels.forEach((channel) => this.addChannel(channel));
 	}
 
-	/**
-	 * TODO: 
-	 * @returns TODO:
+		/**
+	 * Create new nodes with random names.
+	 * @param {Integer} [count=1] - how many nodes.
+	 * @returns {Node}
 	 */
-	createRandomChannel() {
-		var source = this.getRandomNode();
-		var target = this.getRandomNode();
-		//TODO: check is this nodes already have channels. If so try to choose others.
-		
-		return {
-			source: source.id, 
-			target: target.id,
-			sourceBalance: Math.floor(Math.random()*10),
-			targetBalance: Math.floor(Math.random()*10)
-		};
+	createRandomChannels(count) {
+		if ((typeof count !== "undefined" && typeof count !== "number") || count < 0) {
+			throw new TypeError('parameter count must be a positive number');
+		}
+		return Array.from(new Array(count), (x) =>  {
+			const source = this.getRandomNode();
+			const target = this.getRandomNode();
+			return {
+				source: source.id, 
+				target: target.id,
+				sourceBalance: Math.floor(Math.random()*10),
+				targetBalance: Math.floor(Math.random()*10)
+			}
+		});
 	}
 
 	/**
@@ -396,17 +414,17 @@ class Beadnet {
 		}
 		if (this.paths) {
 			this.paths.attr("d", (d) => {
-				var count = this._channels.filter((c) => ((d.source.id === d.source.id) && (d.target.id === d.target.id))).length;
-				//console.log(count);
+				// var count = this._channels.filter((c) => ((d.source.id === d.source.id) && (d.target.id === d.target.id))).length;
+				// //console.log(count);
 
-				if (count <= 1) {
+				// if (count <= 1) {
 					return `M${d.source.x},${d.source.y} ${d.target.x},${d.target.y}`;
-				} else {
-					var dx = d.target.x - d.source.x;
-					var dy = d.target.y - d.source.y;
-					var dr = Math.sqrt((dx*dx+count) + (dy*dy+count));
-					return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
-				}
+				// } else {
+				// 	var dx = d.target.x - d.source.x;
+				// 	var dy = d.target.y - d.source.y;
+				// 	var dr = Math.sqrt((dx*dx+count) + (dy*dy+count));
+				// 	return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
+				// }
 			});
 		}
 		//_tickedBeads();

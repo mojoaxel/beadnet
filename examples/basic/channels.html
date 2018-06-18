@@ -38,10 +38,9 @@ window.onload = function () {
 	// add 10 random nodes
 	bn.addNodes(bn.createRandomNodes(10));
 
-
 	setInterval(() => {
 		var rand = Math.random();
-		if (rand >= 0.65) {
+		if (rand >= 0.6) {
 			// remove a random channel
 			var channel = bn.getRandomChannel();
 			if (channel) {
@@ -49,9 +48,9 @@ window.onload = function () {
 			}
 		} else {
 			// create a new a random channel and add it
-			var channel = bn.createRandomChannel();
-			if (channel) {
-				bn.addChannel(channel);
+			var channels = bn.createRandomChannels(1);
+			if (channels) {
+				bn.addChannels(channels);
 			}
 		}
 	},1000);

@@ -12,11 +12,14 @@ const defaultOptions = {
 		color: null,
 		strokeWidth: 3,
 		strokeColor: null,
+
+		/* ['id', 'balance'] */
+		text: 'id'
 	},
 
 	channels: {
-		color: 'lightgray',
-		strokeWidth: 3,
+		color: 'gray',
+		strokeWidth: 6,
 		strokeColor: null,
 	}
 };
