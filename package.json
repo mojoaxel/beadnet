@@ -11,7 +11,8 @@
     "test": "mocha",
     "pretest": "npm run build",
     "docs": "jsdoc src --recurse --destination docs",
-    "dist": "npm run dist && npm run docs"
+    "index": "markdown README.md -f gfm -t BeadNet -s ./docs/styles/jsdoc-default.css > index.html",
+    "dist": "npm run dist && npm run docs && npm run index"
   },
   "repository": {
     "type": "git",
@@ -32,6 +33,7 @@
     "babel-preset-env": "^1.7.0",
     "babel-preset-es2015": "^6.24.1",
     "jsdoc": "^3.5.5",
+    "markdown-to-html": "0.0.13",
     "mocha": "^5.2.0",
     "reload": "^2.2.2",
     "rollup": "^0.59.1",

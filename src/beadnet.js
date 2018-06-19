@@ -305,7 +305,6 @@ class Beadnet {
 					index: sourceBalance+index
 				}
 			}));
-			console.log(beadArray);
 		
 			let beadElements = channelRoots.selectAll(".bead").data(beadArray);
 			
@@ -406,13 +405,11 @@ class Beadnet {
 			if (unique) {
 				let killCounter = 0;
 				while((source.id == target.id || this.getChannels(source.id, target.id).length > 0) && killCounter < this._channels.length) {
-					console.log("IGNORED: ", source.id, "->", target.id, killCounter);
 					source = this.getRandomNode();
 					target = this.getRandomNode();
 					killCounter++;
 				}
-			}
-			console.log("New Channel: ", source.id, "->", target.id);
+			};
 
 			let sourceBalance = getRandomNumber(6);
 			let targetBalance = getRandomNumber(6);
@@ -460,7 +457,6 @@ class Beadnet {
 	}
 
 	_positionBeat(b) {
-		console.log("_positionBeat ", b);
 		const bead = d3.select(b);
 		const index = bead.attr("index");
 		const state = bead.attr("channel-state"); // state 0=source, 1=target
@@ -491,7 +487,6 @@ class Beadnet {
 		if (this._paths) {
 			this._paths.attr("d", (d) => {
 				// var count = this._channels.filter((c) => ((d.source.id === d.source.id) && (d.target.id === d.target.id))).length;
-				// //console.log(count);
 
 				// if (count <= 1) {
 					return `M${d.source.x},${d.source.y} ${d.target.x},${d.target.y}`;
