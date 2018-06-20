@@ -1,3 +1,5 @@
+import extend from "extend";
+
 const defaultOptions = {
 			
 	colorScheme: d3.scaleOrdinal(d3.schemeCategory10),
@@ -41,7 +43,7 @@ const defaultOptions = {
  */
 function extendDefaultOptions(options) {
 	let opt = {};
-	Object.assign(opt, defaultOptions, options);
+	extend(true, opt, defaultOptions, options);
 	
 	opt.nodes.color = opt.nodes.color || opt.colorScheme(0);
 	opt.nodes.strokeColor = opt.nodes.strokeColor || opt.container.backgroundColor;

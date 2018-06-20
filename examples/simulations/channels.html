@@ -31,50 +31,28 @@ window.onload = function () {
 
 	// initialize BeadNet
 	var bn = new beadnet({
-		colorScheme: colors,
-		// nodes: {
-		// 	text: 'balance'
-		// }
+		colorScheme: colors
 	});
 
 	// add 10 random nodes
-	bn.addNodes([{
-		id: "A",
-		balance: 10
-	}, {
-		id: "Hub",
-		balance: 10
-	}, {
-		id: "B",
-		balance: 10
-	}]);
+	bn.addNodes(bn.createRandomNodes(10));
 
-	// setTimeout(() => {
-		bn.addChannels([{
-			source: "A",
-			target: "Hub",
-			sourceBalance: 5,
-			targetBalance: 0
-		}, {
-			source: "B",
-			target: "Hub",
-			sourceBalance: 3,
-			targetBalance: 2
-		}])
-	// }, 3000);
-
-	setTimeout(() => {
-		bn.removeChannel("A", "Hub");
-	}, 3000);
-
-	// setTimeout(() => {
-	// 	bn.addChannel({
-	// 		source: "B",
-	// 		target: "Hub",
-	// 		sourceBalance: 5,
-	// 		targetBalance: 0
-	// 	})
-	// }, 4000);
+	setInterval(() => {
+		var rand = Math.random();
+		if (rand >= 0.8 || bn.getChannelCount() > 20) {
+			// remove a random channel
+			var channel = bn.getRandomChannel();
+			if (channel) {
+				//bn.removeChannel(channel.source.id, channel.target.id);
+			}
+		} else {
+			// create a new a random channel and add it
+			var channels = bn.createRandomChannels(1, true);
+			if (channels) {
+				bn.addChannels(channels);
+			}
+		}
+	}, 1000, bn);
 
 };
 </script>

@@ -31,49 +31,57 @@ window.onload = function () {
 
 	// initialize BeadNet
 	var bn = new beadnet({
-		colorScheme: colors
+		colorScheme: colors,
+		//debug: true,
+		// nodes: {
+		// 	text: 'balance'
+		// }
 	});
 
-	// add mutiple nodes at the same time
+	// add 10 random nodes
 	bn.addNodes([{
-		id: "Bob"
-	}, { 
-		id: "Hub"
-	}, { 
-		id: "Alice"
-	}])
-	
-	bn.addChannels([{
-		source: "Alice",
-		target: "Hub",
-		sourceBalance: 4,
-		targetBalance: 1
+		id: "A",
+		balance: 10
 	}, {
-		source: "Hub",
-		target: "Bob",
-		sourceBalance: 3,
+		id: "Hub1",
+		balance: 10
+	}, {
+		id: "Hub2",
+		balance: 10
+	}, {
+		id: "B",
+		balance: 10
+	}]);
+
+	bn.addChannels([{
+		source: "A",
+		target: "Hub1",
+		sourceBalance: 5,
+		targetBalance: 0
+	},{
+		source: "Hub1",
+		target: "Hub2",
+		sourceBalance: 5,
+		targetBalance: 0
+	},{
+		source: "Hub2",
+		target: "B",
+		sourceBalance: 5,
 		targetBalance: 0
 	}]);
 
-	try {
-		setTimeout(function() { 
-			bn.moveBeads("Alice", "Hub", 2);
-		}, 2000);
-
-		setTimeout(function() { 
-			bn.moveBeads("Hub", "Bob", 2);
-		}, 5000);
-
-		setTimeout(function() { 
-			bn.moveBeads("Bob", "Hub", 1);
-		}, 10000);
-
-		setTimeout(function() { 
-			bn.moveBeads("Hub", "Alice", 1);
-		}, 12000);
-	} catch(e) {
-		console.warn(e);
-	}
+	setInterval(() => {
+		var count = 1;
+		bn.moveBeads("A", "Hub1", count, () => {
+			bn.moveBeads("Hub1", "A", count );
+		});
+		bn.moveBeads("Hub1", "Hub2", count, () => {
+			bn.moveBeads("Hub2", "Hub1", count );
+		});
+		bn.moveBeads("Hub2", "B", count, () => {
+			bn.moveBeads("B", "Hub2", count );
+		});
+	}, 2500);
 
 };
 </script>

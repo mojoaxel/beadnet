@@ -1,4 +1,5 @@
 import log from 'loglevel';
+import extend from 'extend';
 
 let names = ["Lester","Margot","Abdul","Avery","Clara","Ewald","Kendall", "Leda","Dawn","Quinn","Dane","Buster","Carlee","Maud","Jacey","Samara", "Alene","Kaylin","Hubert","Al","Franco","Mervin","Neha","Kole","Candida","Enoch", "Pansy","Ryder","Mabel","Tavares","Landen","Bryon", "Dayne","Derek","Kyla","Estevan","Orval","Violette","Daija", "Stella","Zelma","Robyn","Colby","Joyce","Cruz","Pedro","Leanna", "Emanuel","Hans","Randal","Ivy","Marco", "Abbey","Shea","Ethan","Novella","Abel","Kale","Irma","Esther","Ransom","Glennie", "Edmund","Aric","Aiyana","Trenton","Dana","Wade","Tyrell","Timmy","Dudley","Macy", "Marilie","Kaley","Gayle","Eda","Max","Kaitlyn","Josie","Lea","Nico","Marc"];
 
@@ -52,7 +53,7 @@ const defaultOptions = {
  */
 function extendDefaultOptions(options) {
 	let opt = {};
-	Object.assign(opt, defaultOptions, options);
+	extend(true, opt, defaultOptions, options);
 	
 	opt.nodes.color = opt.nodes.color || opt.colorScheme(0);
 	opt.nodes.strokeColor = opt.nodes.strokeColor || opt.container.backgroundColor;
@@ -124,7 +125,7 @@ class Beadnet {
 	 * @returns {Node|undefinded}
 	 */
 	_getNodeById(id) {
-		return d3.map(this._nodes, (d) => { return d.id; }).get(id);
+		return this._nodes.find((node) => node.id == id);
 	}
 
 	/**
@@ -145,11 +146,11 @@ class Beadnet {
 			// .on("tick", this._ticked.bind(this));
 
 		return d3.forceSimulation(this._nodes)
-			.force("charge", d3.forceManyBody().strength(-5000))
+			.force("charge", d3.forceManyBody().strength(-3000))
 			.force("link", d3.forceLink(this._channels).strength(0.01).distance(this.forceDistance))
 			.force("x", d3.forceX())
 			.force("y", d3.forceY())
-			.alphaTarget(0)
+			//.alphaTarget(0)
 			.on("tick", this._ticked.bind(this));
 	}
 
@@ -210,26 +211,29 @@ class Beadnet {
 			.selectAll(".node")
 			.data(this._nodes, (data) => data.id);
 
+		/* remove deleted nodes */
 		this._nodeElements.exit()
 			.remove();
 
-		var nodeParent = this._nodeElements.enter()
-			.append("g")
-				.attr("class", "node")
-				.attr("id", (data) => data.id)
-				.attr("balance", (data) => data.balance)
-				.style("stroke", this._opt.nodes.strokeColor)
-				.style("stroke-width", this._opt.nodes.strokeWidth);
-
+		/* create new nodes */
+		var nodeParent = this._nodeElements.enter().append("g")
+			.attr("class", "node")
+			.attr("id", (data) => data.id)
+			.attr("balance", (data) => data.balance)
+			.style("stroke", this._opt.nodes.strokeColor)
+			.style("stroke-width", this._opt.nodes.strokeWidth);
+				
 		nodeParent.append("circle")
-				.attr("r",  this._opt.nodes.radius)
-				.attr("fill", function(data) { return data.color; })
-				.style("cursor", "pointer");
-
+			.attr("class", "node-circle")
+			.attr("fill", (data) => data.color)
+			.attr("r",  this._opt.nodes.radius)
+			.style("cursor", "pointer");
+				
 		nodeParent.append("text")
 			.style("stroke-width", 0.5)
-			.attr("stroke", this._opt.nodes.strokeColor)
-			.attr("fill", this._opt.nodes.strokeColor)
+			.attr("class", "node-text")
+			.attr("stroke", this._opt.container.backgroundColor)
+			.attr("fill", this._opt.container.backgroundColor)
 			.attr("font-family", "sans-serif")
 			.attr("font-size", "15px")
 			.attr("y", "5px")
@@ -237,11 +241,13 @@ class Beadnet {
 			.attr("pointer-events", "none")
 			.text((d) => d[this._opt.nodes.text]);
 
-		nodeParent.append("title")
-			.text((d) => d.id);
-		
-		nodeParent
-			.call(this.behaviors.drag);
+		nodeParent.call(this.behaviors.drag);
+
+		/* update existing nodes */
+		this._nodeElements
+			.attr("balance", (data) => data.balance)
+			.selectAll('.node-text')
+			.text((d) => d[this._opt.nodes.text]);
 
 		this.simulation
 			.nodes(this._nodes)
@@ -299,6 +305,7 @@ class Beadnet {
 		this._nodes = this._nodes.filter(node => node.id != nodeId);
 		this._updateNodes();	
 		
+		/* make this funktion chainable */
 		return this;
 	};
 
@@ -369,7 +376,6 @@ class Beadnet {
 					index: sourceBalance+index
 				}
 			}));
-			console.log(beadArray);
 		
 			let beadElements = channelRoots.selectAll(".bead").data(beadArray);
 			
@@ -423,8 +429,20 @@ class Beadnet {
 	 * TODO: addChannel
 	 * @param {Channel} channel 
 	 */
-	addChannel(channel) {		const source = this._getNodeById(channel.source);
-		const target = this._getNodeById(channel.target);
+	addChannel(channel) {		let source = this._getNodeById(channel.source);
+		let target = this._getNodeById(channel.target);
+
+		if (source.balance < channel.sourceBalance) {
+			throw new Error("Insufficient Funds. The source node has not enough funds to open this channel");
+		}
+		if (target.balance < channel.targetBalance) {
+			throw new Error("Insufficient Funds. The target node has not enough funds to open this channel");
+		}
+
+		source.balance -= channel.sourceBalance;
+		target.balance -= channel.targetBalance;
+		this._updateNodes();
+
 		const id = this._getUniqueChannelId(channel);
 		this._channels.push({
 			id: id,
@@ -469,14 +487,11 @@ class Beadnet {
 			if (unique) {
 				let killCounter = 0;
 				while((source.id == target.id || this.getChannels(source.id, target.id).length > 0) && killCounter < this._channels.length) {
-					console.log("IGNORED: ", source.id, "->", target.id, killCounter);
 					source = this.getRandomNode();
 					target = this.getRandomNode();
 					killCounter++;
 				}
 			}
-			console.log("New Channel: ", source.id, "->", target.id);
-
 			let sourceBalance = getRandomNumber(6);
 			let targetBalance = getRandomNumber(6);
 			sourceBalance = (!sourceBalance && !targetBalance) ?  getRandomNumber(6)+1 : sourceBalance;
@@ -505,11 +520,13 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO: 
-	 * @returns TODO:
+	 * Remove channel with the given source and target ids.
+	 * @returns {Beatnet} beatnet
 	 */
 	removeChannel(sourceId, targetId) {
-		this._channels = this._channels.filter((channel) => (channel.source.id !== sourceId && channel.target.id !== targetId));
+		this._channels = this._channels.filter((channel) => (
+				(channel.source.id != sourceId) || (channel.target.id != targetId)
+		));
 		this._updateChannels();	
 		
 		return this;
@@ -523,7 +540,6 @@ class Beadnet {
 	}
 
 	_positionBeat(b) {
-		console.log("_positionBeat ", b);
 		const bead = d3.select(b);
 		const index = bead.attr("index");
 		const state = bead.attr("channel-state"); // state 0=source, 1=target
@@ -554,7 +570,6 @@ class Beadnet {
 		if (this._paths) {
 			this._paths.attr("d", (d) => {
 				// var count = this._channels.filter((c) => ((d.source.id === d.source.id) && (d.target.id === d.target.id))).length;
-				// //console.log(count);
 
 				// if (count <= 1) {
 					return `M${d.source.x},${d.source.y} ${d.target.x},${d.target.y}`;
@@ -579,7 +594,7 @@ class Beadnet {
 		});
 	}
 	
-	animateBead(bead, delay) {
+	animateBead(bead, direction, delay) {
 		var that = this;
 		return bead
 			.transition()
@@ -589,11 +604,15 @@ class Beadnet {
 				.duration(1000)
 				.attrTween("channel-state", function(a) { return function(t) { 
 					that.tickedBeads();
-					return t;
+					if (direction) {
+						return  t;
+					} else {
+						return 1-t
+					}
 				}});
 	}
 
-	moveBeads(sourceId, targetId, beadCount) {
+	moveBeads(sourceId, targetId, beadCount, callback) {
 		const channels = this.getChannels(sourceId, targetId);
 
 		const channel = channels[0];
@@ -602,19 +621,54 @@ class Beadnet {
 		const channelElement = d3.select(`#${channel.id}`);
 
 		const balance = channel.sourceBalance + channel.targetBalance;
-	
-		var startIndex = channel.sourceBalance - beadCount;
-		var endIndex = balance-1 - channel.targetBalance;
-		for (let i=endIndex; i>=startIndex; i--) {
-			var bead = channelElement.select(`.bead[index="${i}"]`);
-			const delay = (endIndex-i)*100;
-			this.animateBead(bead, delay).on("end", (channel, a, b) => {
-				channel.sourceBalance--;
-				channel.targetBalance++;
-				d3.select(`.channel[id=${channel.id}]`)
-					.attr("source-balance", channel.sourceBalance)
-					.attr("target-balance", channel.targetBalance);
-			});
+
+		if (channel.source.id == sourceId) {
+
+			var startIndex = channel.sourceBalance - beadCount;
+			var endIndex = startIndex + beadCount-1;
+
+			var transitionCounter = 0;
+			for (let i=endIndex; i>=startIndex; i--) {
+				var bead = channelElement.select(`.bead[index="${i}"]`);
+				const delay = (endIndex-i)*100;
+				transitionCounter++;
+				this.animateBead(bead, true, delay).on("end", (channel, a, b) => {
+					channel.sourceBalance--;
+					channel.targetBalance++;
+					d3.select(`.channel[id=${channel.id}]`)
+						.attr("source-balance", channel.sourceBalance)
+						.attr("target-balance", channel.targetBalance);
+
+					transitionCounter--;
+					if (transitionCounter <= 0) {
+						return callback && callback();
+					}
+				});
+			}
+
+		} else {
+			var startIndex = balance - channel.targetBalance;
+			var endIndex = startIndex + beadCount-1;
+
+			var transitionCounter = 0;
+			for (let i=endIndex; i>=startIndex; i--) {
+				var bead = channelElement.select(`.bead[index="${i}"]`);
+				const delay = (i-endIndex)*100;
+				transitionCounter++;
+				this.animateBead(bead, false, delay).on("end", (channel, a, b) => {
+					channel.targetBalance--;
+					channel.sourceBalance++;
+					d3.select(`.channel[id=${channel.id}]`)
+						.attr("source-balance", channel.sourceBalance)
+						.attr("target-balance", channel.targetBalance);
+
+					transitionCounter--;
+					if (transitionCounter <= 0) {
+						return callback && callback();
+					}
+				});
+			}
+			
 		}
 	}
 
