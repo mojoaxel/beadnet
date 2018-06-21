@@ -30,7 +30,7 @@ window.onload = function () {
 	var colors = d3.scaleOrdinal(d3.schemeCategory10);
 
 	// initialize BeadNet
-	var bn = new beadnet({
+	window.bn = new beadnet({
 		colorScheme: colors,
 		// nodes: {
 		// 	text: 'balance'
@@ -49,25 +49,38 @@ window.onload = function () {
 		balance: 10
 	}]);
 
-	// setTimeout(() => {
-		bn.addChannels([{
-			source: "A",
-			target: "Hub",
-			sourceBalance: 5,
-			targetBalance: 0
-		}, {
-			source: "B",
-			target: "Hub",
-			sourceBalance: 3,
-			targetBalance: 2
-		}])
-	// }, 3000);
+	bn.addChannel({
+		source: "A",
+		target: "Hub",
+		sourceBalance: 5,
+		targetBalance: 0
+	});
+	
+	bn.addChannel({
+		source: "B",
+		target: "Hub",
+		sourceBalance: 3,
+		targetBalance: 2
+	});
 
 	bn.highlightChannel("B", "Hub", true);
 
-	setTimeout(() => {
-		bn.removeChannel("A", "Hub");
-	}, 3000);
+	// setTimeout(() => {
+	// 	bn.removeChannel("A", "Hub");
+	// }, 3000);
+
+	// setTimeout(() => {
+	// 	bn.addChannel({
+	// 		source: "A",
+	// 		target: "Hub",
+	// 		sourceBalance: 5,
+	// 		targetBalance: 0
+	// 	});
+	// }, 4000);
+
+	// setTimeout(() => {
+	// 	bn.removeChannel("A", "Hub");
+	// }, 5000);
 
 	// setTimeout(() => {
 	// 	bn.addChannel({

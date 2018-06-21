@@ -189,7 +189,6 @@ class Beadnet {
 
 		this.simulation
 			.nodes(this._nodes)
-			.alpha(1)
 			.restart();
 
 		this._nodeElements = this.nodeContainer
@@ -280,29 +279,28 @@ class Beadnet {
 	_updateChannels() {
 		const opt = this._opt;
 
-		console.log(this._channels);
+		console.log("_updateChannels: ", this._channels);
 
 		this._channelElements = this.channelContainer.selectAll(".channel").data(this._channels);
 
 		/* remove channels that no longer exist */
-		this._channelElements.exit().remove()
+		this._channelElements.exit().transition().duration(500).style("opacity", 0).remove();
 
 		/* create new svg elements for new channels */
 		var channelRoots = this._channelElements.enter().append("g")
 			.attr("class", "channel")
 			.attr("id", (d) => d.id)
-			.attr("highlighted", (d) => d.hightlighted)
-			.attr("source-balance", (d) => d.sourceBalance)
-			.attr("target-balance", (d) => d.targetBalance)
-			.attr("source-id", (d) => d.source.id)
-			.attr("target-id", (d) => d.target.id);
+		.merge(this._channelElements)
 
 		channelRoots.append("path")
 			.attr("class", "path")
-			.attr("id", (d) => `${d.id}_path`)
-			.style("stroke-width", opt.channels.strokeWidth)
-			.style("stroke", opt.channels.color)
-			.style("fill", "none");
+			// .attr("id", (d) => {
+			// 	console.log("Create: ", d);
+			// 	return `${d.id}_path`
+			// })
+			// .style("stroke-width", opt.channels.strokeWidth)
+			// .style("stroke", opt.channels.color)
+			// .style("fill", "none");
 
 		if (this._opt.channels.showBalance) {
 			channelRoots.append("text")
@@ -321,55 +319,66 @@ class Beadnet {
 					.text((d) => `${d.sourceBalance}:${d.targetBalance}`);
 		}
 
-
-		// let sourceBalance = +channelRoots.attr("source-balance");
-		// let targetBalance = +channelRoots.attr("target-balance");
-		// var beadArray = Array.from(new Array(sourceBalance), (x, index) => {
-		// 	return {
-		// 		state: 0,
-		// 		index: index
-		// 	}
-		// });
-		// beadArray.push(...Array.from(new Array(targetBalance), (x, index) => {
-		// 	return {
-		// 		state: 1,
-		// 		index: sourceBalance+index
-		// 	}
-		// }));
+		let sourceBalance = +channelRoots.attr("source-balance");
+		let targetBalance = +channelRoots.attr("target-balance");
+		var beadArray = Array.from(new Array(sourceBalance), (x, index) => {
+			return {
+				state: 0,
+				index: index
+			}
+		});
+		beadArray.push(...Array.from(new Array(targetBalance), (x, index) => {
+			return {
+				state: 1,
+				index: sourceBalance+index
+			}
+		}));
 	
-		// let beadElements = channelRoots.selectAll(".bead").data(beadArray);
+		let beadElements = channelRoots.selectAll(".bead").data(beadArray);
 		
-		// beadElements.exit().remove();
+		beadElements.exit().remove();
 		
-		// let beadElement = beadElements.enter().append("g")
-		// 	.attr("class", "bead")	
-		// 	.attr("channel-state", (d) => d.state) //TODO: 0 or 1?
-		// 	.attr("index", (d) => d.index)
+		let beadElement = beadElements.enter().append("g")
+			.attr("class", "bead")	
+			.attr("channel-state", (d) => d.state) //TODO: 0 or 1?
+			.attr("index", (d) => d.index)
 	
-		// 	beadElement.append("circle")
-		// 	.attr("r",  opt.beads.radius)
-		// 	.style("stroke-width", opt.beads.strokeWidth)
-		// 	.style("fill", opt.beads.color)
-		// 	.style("stroke", opt.beads.strokeColor);
+			beadElement.append("circle")
+			.attr("r",  opt.beads.radius)
+			.style("stroke-width", opt.beads.strokeWidth)
+			.style("fill", opt.beads.color)
+			.style("stroke", opt.beads.strokeColor);
 
-		// if (opt.beads.showIndex) {
-		// 	/* show bead index */
-		// 	beadElement.append("text")
-		// 		.attr("class", "bead-text")	
-		// 		.style("stroke-width", 0.2)
-		// 		.attr("stroke", opt.container.backgroundColor)
-		// 		.attr("fill", opt.container.backgroundColor)
-		// 		.attr("font-family", "sans-serif")
-		// 		.attr("font-size", "8px")
-		// 		.attr("y", "2px")
-		// 		.attr("text-anchor", "middle")
-		// 		.attr("pointer-events", "none")
-		// 		.text((d) => d.index);
-		// }
+		if (opt.beads.showIndex) {
+			/* show bead index */
+			beadElement.append("text")
+				.attr("class", "bead-text")	
+				.style("stroke-width", 0.2)
+				.attr("stroke", opt.container.backgroundColor)
+				.attr("fill", opt.container.backgroundColor)
+				.attr("font-family", "sans-serif")
+				.attr("font-size", "8px")
+				.attr("y", "2px")
+				.attr("text-anchor", "middle")
+				.attr("pointer-events", "none")
+				.text((d) => d.index);
+		}
 
 		/* update channel */
 		this._channelElements
+			.attr("highlighted", (d) => d.hightlighted)
+			.attr("source-balance", (d) => d.sourceBalance)
+			.attr("target-balance", (d) => d.targetBalance)
+			.attr("source-id", (d) => d.source.id)
+			.attr("target-id", (d) => d.target.id)
 			.attr("highlighted", (d) => d.hightlighted);
+
+		this._channelElements.selectAll('.path')
+			.attr("id", (d) =>  `${d.id}_path`)
+			.style("stroke-width", opt.channels.strokeWidth)
+			.style("stroke", opt.channels.color)
+			.style("fill", "none");
+
 
 		if (this._opt.channels.showBalance) {
 			this._channelElements.selectAll('.channel-text-path')
@@ -392,6 +401,8 @@ class Beadnet {
 		/* update this._paths; needed in this._ticked */
 		this._paths = this.channelContainer.selectAll(".channel .path");
 		this.beadElements = this.channelContainer.selectAll(".channel .bead");
+
+		this.simulation.restart();
 
 		return this._channelElements;
 	}
@@ -443,11 +454,9 @@ class Beadnet {
 		source.channelCount = source.channelCount + 1;
 		target.channelCount = target.channelCount + 1;
 
-		this._updateChannels();
-
 		this.simulation.force("link").links(this._channels)
-		
-		this.simulation.alpha(1).restart();
+
+		this._updateChannels();
 	}
 
 	/**
@@ -585,6 +594,7 @@ class Beadnet {
 				// var count = this._channels.filter((c) => ((d.source.id === d.source.id) && (d.target.id === d.target.id))).length;
 
 				// if (count <= 1) {
+					//console.log(d);
 					return `M${d.source.x},${d.source.y} ${d.target.x},${d.target.y}`;
 				// } else {
 				// 	var dx = d.target.x - d.source.x;

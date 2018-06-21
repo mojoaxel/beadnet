@@ -45,7 +45,7 @@
   "dependencies": {
     "async": "^2.6.1",
     "d3": "^5.4.0",
-    "datasets-unisex-first-names-en": "^1.0.0",
+    "datasets-unisex-first-names-en": "^1.1.0",
     "extend": "^3.0.1",
     "loglevel": "^1.6.1"
   },
