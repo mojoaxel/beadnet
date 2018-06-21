@@ -35,6 +35,9 @@ const defaultOptions = {
 		color: 'gray',
 		strokeWidth: 6,
 		strokeColor: null,
+
+		/* show channel balance as text path */
+		showBalance: false
 	},
 
 	beads: {
@@ -176,7 +179,7 @@ class Beadnet {
 	}
 	
 	/**
-	 * 
+	 * TODO:
 	 */
 	createBehaviors() {
 		return {
@@ -192,6 +195,9 @@ class Beadnet {
 		}
 	}
 
+	/**
+	 * TODO:
+	 */
 	updateSimulationCenter() {
 		const centerX = this.svg.attr('width') / 2;
 		const centerY = this.svg.attr('height') / 2;
@@ -349,63 +355,87 @@ class Beadnet {
 
 		/* create new svg elements for new channels */
 		var channelRoots = this._channelElements.enter().append("g")
-				.attr("class", "channel")
-				.attr("id", (d) => d.id)
-				.attr("source-balance", (d) => d.sourceBalance)
-				.attr("target-balance", (d) => d.targetBalance)
-				.attr("source-id", (d) => d.source.id)
-				.attr("target-id", (d) => d.target.id);
+			.attr("class", "channel")
+			.attr("id", (d) => d.id)
+			.attr("source-balance", (d) => d.sourceBalance)
+			.attr("target-balance", (d) => d.targetBalance)
+			.attr("source-id", (d) => d.source.id)
+			.attr("target-id", (d) => d.target.id);
 
 		channelRoots.append("path")
-				.attr("class", "path")
-				.style("stroke-width", opt.channels.strokeWidth)
-				.style("stroke", opt.channels.color)
-				.style("fill", "none");
+			.attr("class", "path")
+			.attr("id", (d) => `${d.id}_path`)
+			.style("stroke-width", opt.channels.strokeWidth)
+			.style("stroke", opt.channels.color)
+			.style("fill", "none");
 
-			let sourceBalance = +channelRoots.attr("source-balance");
-			let targetBalance = +channelRoots.attr("target-balance");
-			var beadArray = Array.from(new Array(sourceBalance), (x, index) => {
-				return {
-					state: 0,
-					index: index
-				}
-			});
-			beadArray.push(...Array.from(new Array(targetBalance), (x, index) => {
-				return {
-					state: 1,
-					index: sourceBalance+index
-				}
-			}));
-		
-			let beadElements = channelRoots.selectAll(".bead").data(beadArray);
-			
-			beadElements.exit().remove();
-			
-			let beadElement = beadElements.enter().append("g")
-				.attr("class", "bead")	
-				.attr("channel-state", (d) => d.state) //TODO: 0 or 1?
-				.attr("index", (d) => d.index);
-		
-				beadElement.append("circle")
-				.attr("r",  opt.beads.radius)
-				.style("stroke-width", opt.beads.strokeWidth)
-				.style("fill", opt.beads.color)
-				.style("stroke", opt.beads.strokeColor);
+		if (this._opt.channels.showBalance) {
+			channelRoots.append("text")
+				.attr("class", "channel-text")
+				.attr("font-family", "Verdana")
+				.attr("font-size", "12")
+				.attr("dx", 150) //TODO: make this dynamic
+				.attr("dy", -7)
+				.style("pointer-events", "none")
+				.append("textPath")
+					.attr("xlink:href", (d) => `#${d.id}_path`)
+					.attr("class", "channel-text-path")
+					.style("stroke-width", 1)
+					.style("stroke", opt.channels.color)
+					.style("fill", "none")
+					.text((d) => `${d.sourceBalance}:${d.targetBalance}`);
+		}
 
-			if (opt.beads.showIndex) {
-				/* show bead index */
-				beadElement.append("text")
-					.attr("class", "bead-text")	
-					.style("stroke-width", 0.2)
-					.attr("stroke", opt.container.backgroundColor)
-					.attr("fill", opt.container.backgroundColor)
-					.attr("font-family", "sans-serif")
-					.attr("font-size", "8px")
-					.attr("y", "2px")
-					.attr("text-anchor", "middle")
-					.attr("pointer-events", "none")
-					.text((d) => d.index);
+		let sourceBalance = +channelRoots.attr("source-balance");
+		let targetBalance = +channelRoots.attr("target-balance");
+		var beadArray = Array.from(new Array(sourceBalance), (x, index) => {
+			return {
+				state: 0,
+				index: index
 			}
+		});
+		beadArray.push(...Array.from(new Array(targetBalance), (x, index) => {
+			return {
+				state: 1,
+				index: sourceBalance+index
+			}
+		}));
+	
+		let beadElements = channelRoots.selectAll(".bead").data(beadArray);
+		
+		beadElements.exit().remove();
+		
+		let beadElement = beadElements.enter().append("g")
+			.attr("class", "bead")	
+			.attr("channel-state", (d) => d.state) //TODO: 0 or 1?
+			.attr("index", (d) => d.index);
+	
+			beadElement.append("circle")
+			.attr("r",  opt.beads.radius)
+			.style("stroke-width", opt.beads.strokeWidth)
+			.style("fill", opt.beads.color)
+			.style("stroke", opt.beads.strokeColor);
+
+		if (opt.beads.showIndex) {
+			/* show bead index */
+			beadElement.append("text")
+				.attr("class", "bead-text")	
+				.style("stroke-width", 0.2)
+				.attr("stroke", opt.container.backgroundColor)
+				.attr("fill", opt.container.backgroundColor)
+				.attr("font-family", "sans-serif")
+				.attr("font-size", "8px")
+				.attr("y", "2px")
+				.attr("text-anchor", "middle")
+				.attr("pointer-events", "none")
+				.text((d) => d.index);
+		}
+
+		/* update channel */
+		if (this._opt.channels.showBalance) {
+			this._channelElements.selectAll('.channel-text-path')
+				.text((d) => `${d.sourceBalance}:${d.targetBalance}`);
+		}
 
 		/* update this._paths; needed in this._ticked */
 		this._paths = this.channelContainer.selectAll(".channel .path");
@@ -414,6 +444,10 @@ class Beadnet {
 		return this._channelElements;
 	}
 
+	/**
+	 * TODO:
+	 * @param {*} channelInfos 
+	 */
 	_getUniqueChannelId(channelInfos) {
 		const channelBalance = (channelInfos.sourceBalance || 0) + (channelInfos.targetBalance || 0);
 		let nonce = 0;
@@ -515,6 +549,9 @@ class Beadnet {
 		return this._channels[getRandomNumber(this._channels.length)];
 	}
 
+	/**
+	 * TODO:
+	 */
 	getChannelCount() {
 		return this._channels.length;
 	}
@@ -532,6 +569,11 @@ class Beadnet {
 		return this;
 	}
 
+	/**
+	 * TODO:
+	 * @param {*} sourceId 
+	 * @param {*} targetId 
+	 */
 	getChannels(sourceId, targetId) {
 		return this._channels.filter((channel) => 
 			(channel.source.id == sourceId && channel.target.id == targetId) ||
@@ -539,6 +581,10 @@ class Beadnet {
 		);
 	}
 
+	/**
+	 * TODO:
+	 * @param {*} b 
+	 */
 	_positionBeat(b) {
 		const bead = d3.select(b);
 		const index = bead.attr("index");
@@ -584,6 +630,9 @@ class Beadnet {
 		this.tickedBeads();
 	}
 
+	/**
+	 * TODO:
+	 */
 	tickedBeads() {
 		var that = this;
 		if (!this.beadElements || this.beadElements.length === 0|| this.beadElements.empty()) {
@@ -594,6 +643,12 @@ class Beadnet {
 		});
 	}
 	
+	/**
+	 * TODO
+	 * @param {*} bead 
+	 * @param {*} direction 
+	 * @param {*} delay 
+	 */
 	animateBead(bead, direction, delay) {
 		var that = this;
 		return bead
@@ -612,6 +667,13 @@ class Beadnet {
 				}});
 	}
 
+	/**
+	 * TODO:
+	 * @param {*} sourceId 
+	 * @param {*} targetId 
+	 * @param {*} beadCount 
+	 * @param {*} callback 
+	 */
 	moveBeads(sourceId, targetId, beadCount, callback) {
 		const channels = this.getChannels(sourceId, targetId);
 
@@ -635,9 +697,15 @@ class Beadnet {
 				this.animateBead(bead, true, delay).on("end", (channel, a, b) => {
 					channel.sourceBalance--;
 					channel.targetBalance++;
-					d3.select(`.channel[id=${channel.id}]`)
+
+					channelElement
 						.attr("source-balance", channel.sourceBalance)
 						.attr("target-balance", channel.targetBalance);
+
+					if (this._opt.channels.showBalance) {
+						channelElement.select('.channel-text-path')
+							.text(`${channel.sourceBalance}:${channel.targetBalance}`);
+					}
 
 					transitionCounter--;
 					if (transitionCounter <= 0) {
@@ -658,9 +726,15 @@ class Beadnet {
 				this.animateBead(bead, false, delay).on("end", (channel, a, b) => {
 					channel.targetBalance--;
 					channel.sourceBalance++;
-					d3.select(`.channel[id=${channel.id}]`)
+					
+					channelElement
 						.attr("source-balance", channel.sourceBalance)
 						.attr("target-balance", channel.targetBalance);
+
+					if (this._opt.channels.showBalance) {
+						channelElement.select('.channel-text-path')
+							.text(`${channel.sourceBalance}:${channel.targetBalance}`);
+					}
 
 					transitionCounter--;
 					if (transitionCounter <= 0) {

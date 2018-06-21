@@ -25,6 +25,9 @@ const defaultOptions = {
 		color: 'gray',
 		strokeWidth: 6,
 		strokeColor: null,
+
+		/* show channel balance as text path */
+		showBalance: false
 	},
 
 	beads: {
