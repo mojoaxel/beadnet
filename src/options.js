@@ -2,7 +2,7 @@ import extend from "extend";
 
 const defaultOptions = {
 			
-	colorScheme: d3.scaleOrdinal(d3.schemeCategory10),
+	colorScheme: d3.scaleOrdinal(d3.schemeCategory20),
 
 	debug: false,
 
@@ -23,13 +23,13 @@ const defaultOptions = {
 
 	channels: {
 		color: 'gray',
-		colorHighlighted: 'red',
+		colorHighlighted: null,
 
 		strokeWidth: 6,
 		strokeColor: null,
 
 		/* show channel balance as text path */
-		showBalance: false
+		showBalance: true
 	},
 
 	beads: {
@@ -52,6 +52,9 @@ function extendDefaultOptions(options) {
 	
 	opt.nodes.color = opt.nodes.color || opt.colorScheme(0);
 	opt.nodes.strokeColor = opt.nodes.strokeColor || opt.container.backgroundColor;
+
+	opt.channels.color = opt.channels.color || opt.colorScheme(15);
+	opt.channels.colorHighlighted = opt.channels.colorHighlighted || opt.colorScheme(19);
 
 	opt.beads.color = opt.beads.color || opt.colorScheme(10);
 	opt.beads.strokeColor = opt.beads.strokeColor || opt.container.backgroundColor;

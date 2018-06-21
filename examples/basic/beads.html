@@ -30,9 +30,9 @@ window.onload = function () {
 	var colors = d3.scaleOrdinal(d3.schemeCategory10);
 
 	// initialize BeadNet
-	var bn = new beadnet({
+	window.bn = new beadnet({
 		colorScheme: colors,
-		//debug: true,
+		debug: true,
 		// nodes: {
 		// 	text: 'balance'
 		// }
@@ -69,6 +69,11 @@ window.onload = function () {
 		sourceBalance: 5,
 		targetBalance: 0
 	}]);
+
+	bn
+		.highlightChannel("A", "Hub1")
+		.highlightChannel("Hub1", "Hub2")
+		.highlightChannel("Hub2", "B")
 
 	setInterval(() => {
 		var count = 1;

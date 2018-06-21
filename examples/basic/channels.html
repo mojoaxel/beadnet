@@ -63,11 +63,18 @@ window.onload = function () {
 		targetBalance: 2
 	});
 
+	bn.addChannel({
+		source: "A",
+		target: "B",
+		sourceBalance: 3,
+		targetBalance: 2
+	});
+
 	bn.highlightChannel("B", "Hub", true);
 
-	// setTimeout(() => {
-	// 	bn.removeChannel("A", "Hub");
-	// }, 3000);
+	setTimeout(() => {
+		bn.removeChannel("A", "Hub");
+	}, 1000);
 
 	// setTimeout(() => {
 	// 	bn.addChannel({
