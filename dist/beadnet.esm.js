@@ -33,6 +33,8 @@ const defaultOptions = {
 
 	channels: {
 		color: 'gray',
+		colorHighlighted: 'red',
+
 		strokeWidth: 6,
 		strokeColor: null,
 
@@ -348,6 +350,8 @@ class Beadnet {
 	_updateChannels() {
 		const opt = this._opt;
 
+		console.log(this._channels);
+
 		this._channelElements = this.channelContainer.selectAll(".channel").data(this._channels);
 
 		/* remove channels that no longer exist */
@@ -357,6 +361,7 @@ class Beadnet {
 		var channelRoots = this._channelElements.enter().append("g")
 			.attr("class", "channel")
 			.attr("id", (d) => d.id)
+			.attr("highlighted", (d) => d.hightlighted)
 			.attr("source-balance", (d) => d.sourceBalance)
 			.attr("target-balance", (d) => d.targetBalance)
 			.attr("source-id", (d) => d.source.id)
@@ -386,56 +391,73 @@ class Beadnet {
 					.text((d) => `${d.sourceBalance}:${d.targetBalance}`);
 		}
 
-		let sourceBalance = +channelRoots.attr("source-balance");
-		let targetBalance = +channelRoots.attr("target-balance");
-		var beadArray = Array.from(new Array(sourceBalance), (x, index) => {
-			return {
-				state: 0,
-				index: index
-			}
-		});
-		beadArray.push(...Array.from(new Array(targetBalance), (x, index) => {
-			return {
-				state: 1,
-				index: sourceBalance+index
-			}
-		}));
-	
-		let beadElements = channelRoots.selectAll(".bead").data(beadArray);
-		
-		beadElements.exit().remove();
-		
-		let beadElement = beadElements.enter().append("g")
-			.attr("class", "bead")	
-			.attr("channel-state", (d) => d.state) //TODO: 0 or 1?
-			.attr("index", (d) => d.index);
-	
-			beadElement.append("circle")
-			.attr("r",  opt.beads.radius)
-			.style("stroke-width", opt.beads.strokeWidth)
-			.style("fill", opt.beads.color)
-			.style("stroke", opt.beads.strokeColor);
 
-		if (opt.beads.showIndex) {
-			/* show bead index */
-			beadElement.append("text")
-				.attr("class", "bead-text")	
-				.style("stroke-width", 0.2)
-				.attr("stroke", opt.container.backgroundColor)
-				.attr("fill", opt.container.backgroundColor)
-				.attr("font-family", "sans-serif")
-				.attr("font-size", "8px")
-				.attr("y", "2px")
-				.attr("text-anchor", "middle")
-				.attr("pointer-events", "none")
-				.text((d) => d.index);
-		}
+		// let sourceBalance = +channelRoots.attr("source-balance");
+		// let targetBalance = +channelRoots.attr("target-balance");
+		// var beadArray = Array.from(new Array(sourceBalance), (x, index) => {
+		// 	return {
+		// 		state: 0,
+		// 		index: index
+		// 	}
+		// });
+		// beadArray.push(...Array.from(new Array(targetBalance), (x, index) => {
+		// 	return {
+		// 		state: 1,
+		// 		index: sourceBalance+index
+		// 	}
+		// }));
+	
+		// let beadElements = channelRoots.selectAll(".bead").data(beadArray);
+		
+		// beadElements.exit().remove();
+		
+		// let beadElement = beadElements.enter().append("g")
+		// 	.attr("class", "bead")	
+		// 	.attr("channel-state", (d) => d.state) //TODO: 0 or 1?
+		// 	.attr("index", (d) => d.index)
+	
+		// 	beadElement.append("circle")
+		// 	.attr("r",  opt.beads.radius)
+		// 	.style("stroke-width", opt.beads.strokeWidth)
+		// 	.style("fill", opt.beads.color)
+		// 	.style("stroke", opt.beads.strokeColor);
+
+		// if (opt.beads.showIndex) {
+		// 	/* show bead index */
+		// 	beadElement.append("text")
+		// 		.attr("class", "bead-text")	
+		// 		.style("stroke-width", 0.2)
+		// 		.attr("stroke", opt.container.backgroundColor)
+		// 		.attr("fill", opt.container.backgroundColor)
+		// 		.attr("font-family", "sans-serif")
+		// 		.attr("font-size", "8px")
+		// 		.attr("y", "2px")
+		// 		.attr("text-anchor", "middle")
+		// 		.attr("pointer-events", "none")
+		// 		.text((d) => d.index);
+		// }
 
 		/* update channel */
+		this._channelElements
+			.attr("highlighted", (d) => d.hightlighted);
+
 		if (this._opt.channels.showBalance) {
 			this._channelElements.selectAll('.channel-text-path')
 				.text((d) => `${d.sourceBalance}:${d.targetBalance}`);
 		}
+
+
+		/***************************************************/
+		/* update channel styles */
+		this._channelElements.selectAll('[highlighted=true] .path')
+			.style("stroke", opt.channels.colorHighlighted);
+
+		this._channelElements.selectAll('[highlighted=false] .path')
+			.style("stroke", opt.channels.color);
+
+		/************************************************* */
+
+
 
 		/* update this._paths; needed in this._ticked */
 		this._paths = this.channelContainer.selectAll(".channel .path");
@@ -480,6 +502,7 @@ class Beadnet {
 		const id = this._getUniqueChannelId(channel);
 		this._channels.push({
 			id: id,
+			hightlighted: false,
 			source: source, 
 			target: target,
 			sourceBalance: channel.sourceBalance,
@@ -571,14 +594,26 @@ class Beadnet {
 
 	/**
 	 * TODO:
-	 * @param {*} sourceId 
-	 * @param {*} targetId 
+	 * @param {String} sourceId 
+	 * @param {String} targetId 
 	 */
 	getChannels(sourceId, targetId) {
 		return this._channels.filter((channel) => 
 			(channel.source.id == sourceId && channel.target.id == targetId) ||
 			(channel.target.id == sourceId && channel.source.id == targetId)
 		);
+	}
+
+	/**
+	 * Mark a channel as "hightlighted"
+	 * @param {String} sourceId 
+	 * @param {String} targetId 
+	 * @param {Boolean} state - should the channel be highlighted [true]/false
+	 */
+	highlightChannel(sourceId, targetId, state = true) {
+		var channels = this.getChannels(sourceId, targetId);
+		channels.forEach((channel) => channel.hightlighted = state);
+		this._updateChannels();
 	}
 
 	/**

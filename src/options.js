@@ -23,6 +23,8 @@ const defaultOptions = {
 
 	channels: {
 		color: 'gray',
+		colorHighlighted: 'red',
+
 		strokeWidth: 6,
 		strokeColor: null,
 
