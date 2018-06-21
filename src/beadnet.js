@@ -85,7 +85,7 @@ class Beadnet {
 			.force("link", d3.forceLink(this._channels).strength(0.005).distance(this.forceDistance))
 			.force("x", d3.forceX())
 			.force("y", d3.forceY())
-			.alphaTarget(0.5)
+			.alphaTarget(0)
 			.on("tick", this._ticked.bind(this));
 	}
 
@@ -301,10 +301,20 @@ class Beadnet {
 		var channelRoots = this._channelElements.enter()
 			.append("g")
 				.attr("class", "channel")
+				.attr("id", (d) => d.id)
+				.attr("source-balance", (d) => d.sourceBalance)
+				.attr("target-balance", (d) => d.targetBalance)
+				.attr("source-id", (d) => d.source.id)
+				.attr("target-id", (d) => d.target.id)
+				.attr("highlighted", (d) => d.hightlighted)
 		
 		channelRoots
 			.append("path")
 				.attr("class", "path")
+				.attr("id", (d) =>  `${d.id}_path`)
+				.style("stroke-width", opt.channels.strokeWidth)
+				.style("stroke", opt.channels.color)
+				.style("fill", "none");
 
 		if (this._opt.channels.showBalance) {
 			channelRoots
@@ -312,7 +322,7 @@ class Beadnet {
 					.attr("class", "channel-text")
 					.attr("font-family", "Verdana")
 					.attr("font-size", "12")
-					.attr("dx", 150) //TODO: make this dynamic
+					.attr("dx", 150) //TODO: place this dynamic between the beads on the path
 					.attr("dy", -7)
 					.style("pointer-events", "none")
 					.append("textPath")
@@ -325,52 +335,51 @@ class Beadnet {
 						.text((d) => d.id)
 		}
 
-	//  console.log(channelRoots);
-
-	// 	let sourceBalance = parseInt(channelRoots.attr("source-balance")) || 0;
-	// 	let targetBalance = parseInt(channelRoots.attr("target-balance")) || 0;
-	// 	var beadArray = Array.from(new Array(sourceBalance), (x, index) => {
-	// 		return {
-	// 			state: 0,
-	// 			index: index
-	// 		}
-	// 	});
-	// 	beadArray.push(...Array.from(new Array(targetBalance), (x, index) => {
-	// 		return {
-	// 			state: 1,
-	// 			index: sourceBalance+index
-	// 		}
-	// 	}));
+		var beadArray = []
+		channelRoots.each((d) => {
+			beadArray = Array.from(new Array(d.sourceBalance), (x, index) => {
+				return {
+					state: 0,
+					index: index
+				}
+			});
+			beadArray.push(...Array.from(new Array(d.targetBalance), (x, index) => {
+				return {
+					state: 1,
+					index: d.sourceBalance + index
+				}
+			}));
+		});
 	
-	// 	let beadElements = channelRoots.selectAll(".bead").data(beadArray);
+		let beadElements = channelRoots.selectAll(".bead").data(beadArray);
 		
-	// 	beadElements.exit().remove();
+		beadElements.exit().remove();
 		
-	// 	let beadElement = beadElements.enter().append("g")
-	// 		.attr("class", "bead")	
-	// 		.attr("channel-state", (d) => d.state) //TODO: 0 or 1?
-	// 		.attr("index", (d) => d.index)
+		let beadElement = beadElements.enter().append("g")
+			.attr("class", "bead")	
+			.attr("channel-state", (d) => d.state) //TODO: 0 or 1?
+			.attr("index", (d) => d.index)
 	
-	// 	beadElement.append("circle")
-	// 		.attr("r",  opt.beads.radius)
-	// 		.style("stroke-width", opt.beads.strokeWidth)
-	// 		.style("fill", opt.beads.color)
-	// 		.style("stroke", opt.beads.strokeColor);
+		beadElement.append("circle")
+			.attr("r",  opt.beads.radius)
+			.style("stroke-width", opt.beads.strokeWidth)
+			.style("fill", opt.beads.color)
+			.style("stroke", opt.beads.strokeColor);
 
-	// 	if (opt.beads.showIndex) {
-	// 		/* show bead index */
-	// 		beadElement.append("text")
-	// 			.attr("class", "bead-text")	
-	// 			.attr("stroke", opt.container.backgroundColor)
-	// 			.attr("fill", opt.container.backgroundColor)
-	// 			.attr("font-family", "sans-serif")
-	// 			.attr("font-size", "8px")
-	// 			.attr("y", "2px")
-	// 			.attr("text-anchor", "middle")
-	// 			.attr("pointer-events", "none")
-	// 			.style("stroke-width", 0.2)
-	// 			.text((d) => d.index);
-	// 	}
+		if (opt.beads.showIndex) {
+			/* show bead index */
+			beadElement.append("text")
+				.attr("class", "bead-text")	
+				.attr("stroke", opt.container.backgroundColor)
+				.attr("fill", opt.container.backgroundColor)
+				.attr("font-family", "sans-serif")
+				.attr("font-size", "8px")
+				.attr("y", "2px")
+				.attr("text-anchor", "middle")
+				.attr("pointer-events", "none")
+				.style("stroke-width", 0.2)
+				.text((d) => d.index);
+		}
 
 		/* update channel */
 		this._channelElements
@@ -584,12 +593,12 @@ class Beadnet {
 	 * TODO:
 	 * @param {*} b 
 	 */
-	_positionBeat(b) {
+	_positionBeat(b, d) {
 		const bead = d3.select(b);
-		const index = bead.attr("index");
-		const state = bead.attr("channel-state"); // state 0=source, 1=target
+		const index = d.index;
+		const state = d.state; // state 0=source, 1=target
 		const channel = d3.select(bead.node().parentNode);
-		const path = channel.select('path');
+		const path = channel.select('.path').node();
 		const sourceBalance = +channel.attr("source-balance");
 		const targetBalance = +channel.attr("target-balance");
 		const balance = sourceBalance + targetBalance;
@@ -598,9 +607,11 @@ class Beadnet {
 	
 		var startPosition = channelPadding + (index * distanceBetweenBeads);	
 		var endPosition = channelPadding + ((balance-1-index) * distanceBetweenBeads);
-		var totalDistance = path.node().getTotalLength() - startPosition - endPosition;
-	
-		const beadPosition = path.node().getPointAtLength(startPosition + state * totalDistance);
+		var totalDistance = path.getTotalLength() - startPosition - endPosition;
+
+		console.log(d, startPosition, state, totalDistance);
+		
+		const beadPosition = path.getPointAtLength(startPosition + state * totalDistance);
 		return `translate(${beadPosition.x},${beadPosition.y})`;
 	}
 
@@ -639,7 +650,7 @@ class Beadnet {
 			return;
 		}
 		this.beadElements.attr("transform", function(d) {
-			return that._positionBeat(this);
+			return that._positionBeat(this, d);
 		});
 	}
 	
@@ -679,9 +690,11 @@ class Beadnet {
 
 		const channel = channels[0];
 		if (!channel) {
-			//TODO: error?
+			console.warn("no channel found!")
 			return;
 		}
+
+		console.log("moveBeads ", beadCount)
 
 		// TODO: get channel with source and target
 		const channelElement = d3.select(`#${channel.id}`);
@@ -720,7 +733,6 @@ class Beadnet {
 
 		} else {
 
-			const lastIndex = balance-1;
 			var startIndex = balance - channel.targetBalance;
 			var endIndex = startIndex + beadCount-1;
 
@@ -750,6 +762,7 @@ class Beadnet {
 			}
 			
 		}
+		
 	}
 
 	/**

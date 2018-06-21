@@ -58,7 +58,7 @@ window.onload = function () {
 		target: "Hub1",
 		sourceBalance: 5,
 		targetBalance: 0
-	},{
+	}/*,{
 		source: "Hub1",
 		target: "Hub2",
 		sourceBalance: 5,
@@ -68,24 +68,24 @@ window.onload = function () {
 		target: "B",
 		sourceBalance: 5,
 		targetBalance: 0
-	}]);
+	}*/]);
 
-	bn
-		.highlightChannel("A", "Hub1")
-		.highlightChannel("Hub1", "Hub2")
-		.highlightChannel("Hub2", "B")
+	// bn
+	// 	.highlightChannel("A", "Hub1")
+	// 	.highlightChannel("Hub1", "Hub2")
+	// 	.highlightChannel("Hub2", "B")
 
 	setInterval(() => {
 		var count = 1;
 		bn.moveBeads("A", "Hub1", count, () => {
 			bn.moveBeads("Hub1", "A", count );
 		});
-		bn.moveBeads("Hub1", "Hub2", count, () => {
-			bn.moveBeads("Hub2", "Hub1", count );
-		});
-		bn.moveBeads("Hub2", "B", count, () => {
-			bn.moveBeads("B", "Hub2", count );
-		});
+		// bn.moveBeads("Hub1", "Hub2", count, () => {
+		// 	bn.moveBeads("Hub2", "Hub1", count );
+		// });
+		// bn.moveBeads("Hub2", "B", count, () => {
+		// 	bn.moveBeads("B", "Hub2", count );
+		// });
 	}, 2500);
 
 };
