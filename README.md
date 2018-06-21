@@ -15,6 +15,13 @@ A visualisation library for peer-to-peer payment channel networks.
 * [Adding and Removing Channels](./examples/basic/channels.html)
 * [Creating and moving Beads](./examples/basic/beads.html)
 
+## Support
+
+💕 Every little donation lights up my day!
+* **BTC ⚡**:	[02ab16f790c7727eac2048771cbe95cbcc1aa93931558c0fd87c06d5c389475a7b@159.89.97.171:9735](https://1ml.com/node/02ab16f790c7727eac2048771cbe95cbcc1aa93931558c0fd87c06d5c389475a7b)
+* **BTC**:	[34dmeTmeWLPLudJ6gqXBQycd1aXbbQR6Aq](https://blockchain.info/de/address/34dmeTmeWLPLudJ6gqXBQycd1aXbbQR6Aq)
+* **Fiat**: [paypal.me/mojoaxel](https://www.paypal.me/mojoaxel)
+
 ## License
 
 Copyright (C) 2018 [Alexander Wunschik](//github.com/mojoaxel)
