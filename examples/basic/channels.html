@@ -30,29 +30,66 @@ window.onload = function () {
 	var colors = d3.scaleOrdinal(d3.schemeCategory10);
 
 	// initialize BeadNet
-	var bn = new beadnet({
-		colorScheme: colors
+	window.bn = new beadnet({
+		colorScheme: colors,
+		// nodes: {
+		// 	text: 'balance'
+		// }
 	});
 
 	// add 10 random nodes
-	bn.addNodes(bn.createRandomNodes(10));
+	bn.addNodes([{
+		id: "A",
+		balance: 10
+	}, {
+		id: "Hub",
+		balance: 10
+	}, {
+		id: "B",
+		balance: 10
+	}]);
 
-	setInterval(() => {
-		var rand = Math.random();
-		if (rand >= 0.8 || bn.getChannelCount() > 20) {
-			// remove a random channel
-			var channel = bn.getRandomChannel();
-			if (channel) {
-				//bn.removeChannel(channel.source.id, channel.target.id);
-			}
-		} else {
-			// create a new a random channel and add it
-			var channels = bn.createRandomChannels(1, true);
-			if (channels) {
-				bn.addChannels(channels);
-			}
-		}
-	}, 1000, bn);
+	bn.addChannel({
+		source: "A",
+		target: "Hub",
+		sourceBalance: 5,
+		targetBalance: 0
+	});
+	
+	bn.addChannel({
+		source: "B",
+		target: "Hub",
+		sourceBalance: 3,
+		targetBalance: 2
+	});
+
+	bn.highlightChannel("B", "Hub", true);
+
+	// setTimeout(() => {
+	// 	bn.removeChannel("A", "Hub");
+	// }, 3000);
+
+	// setTimeout(() => {
+	// 	bn.addChannel({
+	// 		source: "A",
+	// 		target: "Hub",
+	// 		sourceBalance: 5,
+	// 		targetBalance: 0
+	// 	});
+	// }, 4000);
+
+	// setTimeout(() => {
+	// 	bn.removeChannel("A", "Hub");
+	// }, 5000);
+
+	// setTimeout(() => {
+	// 	bn.addChannel({
+	// 		source: "B",
+	// 		target: "Hub",
+	// 		sourceBalance: 5,
+	// 		targetBalance: 0
+	// 	})
+	// }, 4000);
 
 };
 </script>

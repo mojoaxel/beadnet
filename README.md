@@ -15,6 +15,9 @@ A visualisation library for peer-to-peer payment channel networks.
 * [Adding and Removing Channels](./examples/basic/channels.html)
 * [Creating and moving Beads](./examples/basic/beads.html)
 
+### Simulations
+* [Auto Adding and Removing Channels](./examples/simulations/channels.html)
+
 ## Support
 
 💕 Every little donation lights up my day!
