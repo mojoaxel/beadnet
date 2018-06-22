@@ -696,9 +696,7 @@ class Beadnet {
 		if (this._paths) {
 			this._paths.attr("d", (d) => {
 				// var count = this._channels.filter((c) => ((d.source.id === d.source.id) && (d.target.id === d.target.id))).length;
-
 				// if (count <= 1) {
-					//console.log(d);
 					return `M${d.source.x},${d.source.y} ${d.target.x},${d.target.y}`;
 				// } else {
 				// 	var dx = d.target.x - d.source.x;
@@ -822,7 +820,8 @@ class Beadnet {
 
 			var that = this;
 			var transitionCounter = 0;
-			channelElement.selectAll('.bead').each(function(d, index) {
+			channelElement.selectAll('.bead').each(function(d, i) {
+				let index = balance - i;
 				console.log("B: ", index, startIndex, endIndex, balance);
 
 				if (index >= startIndex && index <= endIndex) {

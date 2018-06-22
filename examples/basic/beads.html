@@ -75,8 +75,8 @@ window.onload = function () {
 	// 	.highlightChannel("Hub1", "Hub2")
 	// 	.highlightChannel("Hub2", "B")
 
-	//setInterval(() => {
-		var count = 1;
+	setInterval(() => {
+		var count = 2;
 		bn.moveBeads("A", "Hub1", count, () => {
 			bn.moveBeads("Hub1", "A", count );
 		});
@@ -86,7 +86,7 @@ window.onload = function () {
 		// bn.moveBeads("Hub2", "B", count, () => {
 		// 	bn.moveBeads("B", "Hub2", count );
 		// });
-	//}, 2500);
+	}, 3000);
 
 };
 </script>
