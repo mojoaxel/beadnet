@@ -17,6 +17,7 @@ A visualisation library for peer-to-peer payment channel networks.
 
 ### Simulations
 * [Auto Adding and Removing Channels](./examples/simulations/channels.html)
+* [Interactive emulator](./examples/simulations/emulator.html)
 
 ## Support
 

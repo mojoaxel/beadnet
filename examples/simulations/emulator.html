@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+<style>
+body, html {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+}
+#beadnet {
+	border: 3px solid gray;
+	box-sizing: border-box;
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0%;
+	right: 30%;
+}
+#controls {
+	background: lightgray;
+	position: absolute;
+	top: 0;
+	left: 70%;
+	bottom: 0;
+	right: 0;
+	padding: 1em;
+}
+</style>
+</head>
+<body>
+<div id="beadnet"></div>
+<div id="controls">
+    <fieldset id="add-node">
+        <legend>add node</legend>
+        <input type="text" id="node-id" value="" />
+        <button id="addNode">Add Node</button>
+    </fieldset>
+    <br>
+    <fieldset id="add-channel">
+        <legend>add channel</legend>
+        <input type="text" id="source-id" value="" />
+        <input type="text" id="targe-id" value="" />
+        <input type="text" id="source-balance" value="" />
+        <input type="text" id="targe-balance" value="" />
+        <button id="addChannel">Add Channel</button>
+    </fieldset>
+    <br>
+    <fieldset id="highight-channel">
+        <legend>highlight channel</legend>
+        <input type="text" id="source-id" value="" />
+        <input type="text" id="targe-id" value="" />
+        <button id="highightChannel">Highlight</button>
+    </fieldset>
+    <br>
+	<fieldset id="move-beads">
+        <legend>move beads</legend>
+        <input type="text" id="source-id" value="" />
+        <input type="text" id="targe-id" value="" />
+        <input type="text" id="amount" value="" />
+        <button id="moveBeads">Move Beads</button>
+    </fieldset>
+</div>
+
+<script src="../../node_modules/d3/dist/d3.js"></script>
+<script>window.d3 || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min.js">\x3C/script>')</script>
+
+<script src="../../node_modules/async/dist/async.js"></script>
+
+
+<script src="../../dist/beadnet.standalone.min.js"></script>
+<script>
+window.onload = function () {
+
+    var colors = d3.scaleOrdinal(d3.schemeCategory20);
+
+    window.bn = new beadnet({
+        colorScheme: colors
+    });
+    
+    bn.addNodes([{
+        id: "A",
+        balance: 50
+    }, {
+        id: "B",
+        balance: 50
+    }])
+
+	var btnAddNode = document.querySelector('button#addNode');
+	btnAddNode.addEventListener('click', function() {
+        var node = bn.createRandomNodes(1)[0];
+        var nodeId = document.querySelector('#add-node #node-id').value;
+        if (nodeId) node.id = nodeId
+		bn.addNode(node);
+	});
+
+	var btnAddChannel = document.querySelector('button#addChannel');
+	btnAddChannel.addEventListener('click', function() {
+        var channel = bn.createRandomChannels(1)[0];
+        const source = document.querySelector('#add-channel #source-id').value;
+        const target = document.querySelector('#add-channel #targe-id').value;
+        const sourceBalance = document.querySelector('#add-channel #source-balance').value;
+        const targetBalance = document.querySelector('#add-channel #targe-balance').value;
+
+        channel.source = source || channel.source;
+        channel.target = target || channel.target;
+        channel.sourceBalance = sourceBalance || channel.sourceBalance;
+        channel.targetBalance = targetBalance || channel.targetBalance;
+
+		bn.addChannel(channel);
+    });
+    
+    var btnHighightChannel = document.querySelector('button#highightChannel');
+	btnHighightChannel.addEventListener('click', function() {
+        const source = document.querySelector('#move-beads #source-id').value;
+        const target = document.querySelector('#move-beads #targe-id').value;
+		bn.highlightChannel(source, target);
+	});
+
+    var btnMoveBeads = document.querySelector('button#moveBeads');
+	btnMoveBeads.addEventListener('click', function() {
+        const source = document.querySelector('#move-beads #source-id').value;
+        const target = document.querySelector('#move-beads #targe-id').value;
+        const amount = document.querySelector('#move-beads #amount').value;
+		bn.moveBeads(source, target, amount);
+	});
+
+
+};
+</script>
+</body>
+</html>

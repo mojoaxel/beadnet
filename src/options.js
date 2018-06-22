@@ -29,7 +29,7 @@ const defaultOptions = {
 		strokeColor: null,
 
 		/* show channel balance as text path */
-		showBalance: true
+		showBalance: false
 	},
 
 	beads: {

@@ -30,8 +30,11 @@ window.onload = function () {
 	var colors = d3.scaleOrdinal(d3.schemeCategory10);
 
 	// initialize BeadNet
-	var bn = new beadnet({
-		colorScheme: colors
+	window.bn = new beadnet({
+		colorScheme: colors,
+		// nodes: {
+		// 	text: 'balance'
+		// }
 	});
 
 	// add 10 random nodes

@@ -38,7 +38,7 @@ const defaultOptions = {
 		strokeColor: null,
 
 		/* show channel balance as text path */
-		showBalance: true
+		showBalance: false
 	},
 
 	beads: {
@@ -141,16 +141,16 @@ class Beadnet {
 	 */
 	_createSimulation() {
 		// return d3.forceSimulation()
-			//.nodes(this._nodes)
-			// .alphaDecay(0.1)
-			// .force("x", d3.forceX().strength(0))
-			// .force("y", d3.forceY().strength(1))
-			// .force("charge", d3.forceManyBody().strength(-1000).distanceMin(this.forceDistance).distanceMax(3*this.forceDistance))
-			// .force("collide", d3.forceCollide(this.forceDistance/6))
-			// .force("link", d3.forceLink(this._channels).distance(this.forceDistance))
-			// .force("center", d3.forceCenter(this.width / 2, this.height / 2))
-			// .alphaTarget(0)
-			// .on("tick", this._ticked.bind(this));
+		// 	.nodes(this._nodes)
+		// 	.alphaDecay(0.1)
+		// 	//.force("x", d3.forceX().strength(0))
+		// 	//.force("y", d3.forceY().strength(1))
+		// 	.force("charge", d3.forceManyBody().strength(-1000).distanceMin(this.forceDistance).distanceMax(3*this.forceDistance))
+		// 	//.force("collide", d3.forceCollide(this.forceDistance/6))
+		// 	.force("link", d3.forceLink(this._channels).distance(this.forceDistance))
+		// 	.force("center", d3.forceCenter(this.width / 2, this.height / 2))
+		// 	.alphaTarget(0)
+		// 	.on("tick", this._ticked.bind(this));
 
 		return d3.forceSimulation(this._nodes)
 			.force("charge", d3.forceManyBody().strength(-3000))
@@ -285,7 +285,8 @@ class Beadnet {
 
 		/* initialize with default values */
 		node.id = node.id || getName();
-		node.color = node.color || this._opt.colorScheme(this._nodes.length % 10);
+		node.balance = node.balance || getRandomNumber(100);
+		node.color = node.color || this._opt.colorScheme(this._nodes.length % 20 + 1);
 
 		/* save to nodes array */
 		this._nodes.push(node);
@@ -337,7 +338,7 @@ class Beadnet {
 		return Array.from(new Array(count), (x) => {
 			return {
 				id: getName(),
-				balance: getRandomNumber(10)
+				balance: getRandomNumber(100)
 			};
 		});
 	}
@@ -570,7 +571,7 @@ class Beadnet {
 	 * @param {Integer} [count=1] - how many nodes.
 	 * @returns {Node}
 	 */
-	createRandomChannels(count, unique) {
+	createRandomChannels(count, unique = true) {
 		// if ((typeof count !== "undefined" && typeof count !== "number") || count < 0) {
 		// 	throw new TypeError('parameter count must be a positive number');
 		// }
