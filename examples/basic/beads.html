@@ -56,8 +56,8 @@ window.onload = function () {
 	bn.addChannels([{
 		source: "A",
 		target: "Hub1",
-		sourceBalance: 5,
-		targetBalance: 0
+		sourceBalance: 4,
+		targetBalance: 1
 	}/*,{
 		source: "Hub1",
 		target: "Hub2",
@@ -75,7 +75,7 @@ window.onload = function () {
 	// 	.highlightChannel("Hub1", "Hub2")
 	// 	.highlightChannel("Hub2", "B")
 
-	setInterval(() => {
+	//setInterval(() => {
 		var count = 1;
 		bn.moveBeads("A", "Hub1", count, () => {
 			bn.moveBeads("Hub1", "A", count );
@@ -86,7 +86,7 @@ window.onload = function () {
 		// bn.moveBeads("Hub2", "B", count, () => {
 		// 	bn.moveBeads("B", "Hub2", count );
 		// });
-	}, 2500);
+	//}, 2500);
 
 };
 </script>

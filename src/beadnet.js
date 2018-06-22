@@ -331,8 +331,7 @@ class Beadnet {
 						.style("stroke-width", 1)
 						.style("stroke", opt.channels.color)
 						.style("fill", "none")
-						//.text((d) => `${d.sourceBalance}:${d.targetBalance}`)
-						.text((d) => d.id)
+						.text((d) => `${d.sourceBalance}:${d.targetBalance}`)
 		}
 
 		var beadArray = []
@@ -351,6 +350,7 @@ class Beadnet {
 			}));
 		});
 	
+		console.log("beadArray: ", beadArray);
 		let beadElements = channelRoots.selectAll(".bead").data(beadArray);
 		
 		beadElements.exit().remove();
@@ -596,11 +596,13 @@ class Beadnet {
 	_positionBeat(b, d) {
 		const bead = d3.select(b);
 		const index = d.index;
-		const state = d.state; // state 0=source, 1=target
+		const state = bead.attr("channel-state"); // state 0=source, 1=target
 		const channel = d3.select(bead.node().parentNode);
 		const path = channel.select('.path').node();
-		const sourceBalance = +channel.attr("source-balance");
-		const targetBalance = +channel.attr("target-balance");
+
+		const channelData = channel.data()[0];
+		const sourceBalance = channelData.sourceBalance;
+		const targetBalance = channelData.targetBalance;
 		const balance = sourceBalance + targetBalance;
 		const distanceBetweenBeads = this._opt.beads.distance + this._opt.beads.spacing;
 		const channelPadding = this._opt.beads.firstPosition +  this._opt.beads.spacing;
@@ -609,8 +611,6 @@ class Beadnet {
 		var endPosition = channelPadding + ((balance-1-index) * distanceBetweenBeads);
 		var totalDistance = path.getTotalLength() - startPosition - endPosition;
 
-		console.log(d, startPosition, state, totalDistance);
-		
 		const beadPosition = path.getPointAtLength(startPosition + state * totalDistance);
 		return `translate(${beadPosition.x},${beadPosition.y})`;
 	}
@@ -662,8 +662,9 @@ class Beadnet {
 	 */
 	animateBead(bead, direction, delay) {
 		var that = this;
-		return bead
-			.transition()
+		const select = d3.select(bead)
+		console.log(select);
+		return select.transition()
 				.delay(delay)	
 				//.ease(d3.easeLinear)
 				.ease(d3.easeQuadInOut)
@@ -671,9 +672,9 @@ class Beadnet {
 				.attrTween("channel-state", function(a) { return function(t) { 
 					that.tickedBeads();
 					if (direction) {
-						return  t;
+						return 1-t;
 					} else {
-						return 1-t
+						return t
 					}
 				}});
 	}
@@ -699,67 +700,87 @@ class Beadnet {
 		// TODO: get channel with source and target
 		const channelElement = d3.select(`#${channel.id}`);
 
-		const balance = channel.sourceBalance + channel.targetBalance;
-
 		if (channel.source.id == sourceId) {
 
-			var startIndex = channel.sourceBalance - beadCount;
+			let sourceBalance = +channelElement.attr("source-balance");
+			let targetBalance = channelElement.attr("target-balance");
+			const balance = +sourceBalance + targetBalance;
+
+			var startIndex = sourceBalance - beadCount;
 			var endIndex = startIndex + beadCount-1;
 
+			var that = this;
 			var transitionCounter = 0;
-			for (let i=endIndex; i>=startIndex; i--) {
-				var bead = channelElement.select(`.bead[index="${i}"]`);
-				const delay = (endIndex-i)*100;
-				transitionCounter++
-				this.animateBead(bead, true, delay).on("end", (channel, a, b) => {
-					channel.sourceBalance--;
-					channel.targetBalance++;
+			channelElement.selectAll('.bead').each(function(d, index) {
+				console.log("A: ", index, startIndex, endIndex);
 
-					channelElement
-						.attr("source-balance", channel.sourceBalance)
-						.attr("target-balance", channel.targetBalance);
-
-					if (this._opt.channels.showBalance) {
-						channelElement.select('.channel-text-path')
-							.text(`${channel.sourceBalance}:${channel.targetBalance}`);
-					}
-
-					transitionCounter--;
-					if (transitionCounter <= 0) {
-						return callback && callback();
-					}
-				});
-			}
+				if (index >= startIndex && index <= endIndex) {
+					const delay = (endIndex-index)*100;
+					let state = channelElement.attr('channel-state');
+					transitionCounter++
+					that.animateBead(this, state, delay).on("end", (channel, a, b) => {
+						sourceBalance--;
+						targetBalance++;
+						d.state = 0;
+	
+						channelElement
+							.attr("source-balance", sourceBalance)
+							.attr("target-balance", targetBalance);
+	
+						if (that._opt.channels.showBalance) {
+							channelElement.select('.channel-text-path')
+								.text(`${sourceBalance}:${targetBalance}`);
+						}
+	
+						transitionCounter--;
+						if (transitionCounter <= 0) {
+							return callback && callback();
+						}
+					});
+				}
+			});
 
 		} else {
 
-			var startIndex = balance - channel.targetBalance;
+			let sourceBalance = +channelElement.attr("source-balance");
+			let targetBalance = +channelElement.attr("target-balance");
+			const balance = sourceBalance + +targetBalance;
+
+			console.log("B balance: ", balance);
+
+			var startIndex = balance - targetBalance;
 			var endIndex = startIndex + beadCount-1;
 
+			var that = this;
 			var transitionCounter = 0;
-			for (let i=endIndex; i>=startIndex; i--) {
-				var bead = channelElement.select(`.bead[index="${i}"]`);
-				const delay = (i-endIndex)*100;
-				transitionCounter++
-				this.animateBead(bead, false, delay).on("end", (channel, a, b) => {
-					channel.targetBalance--;
-					channel.sourceBalance++;
-					
-					channelElement
-						.attr("source-balance", channel.sourceBalance)
-						.attr("target-balance", channel.targetBalance);
+			channelElement.selectAll('.bead').each(function(d, index) {
+				console.log("B: ", index, startIndex, endIndex, balance);
 
-					if (this._opt.channels.showBalance) {
-						channelElement.select('.channel-text-path')
-							.text(`${channel.sourceBalance}:${channel.targetBalance}`);
-					}
-
-					transitionCounter--;
-					if (transitionCounter <= 0) {
-						return callback && callback();
-					}
-				});
-			}
+				if (index >= startIndex && index <= endIndex) {
+					const delay = (endIndex-index)*100;
+					let state = channelElement.attr('channel-state');
+					transitionCounter++
+					that.animateBead(this, !d.state, delay).on("end", (channel, a, b) => {
+						sourceBalance++;
+						targetBalance--;
+						d.state = 1;
+	
+						channelElement
+							.attr("source-balance", sourceBalance)
+							.attr("target-balance", targetBalance);
+	
+						if (that._opt.channels.showBalance) {
+							channelElement.select('.channel-text-path')
+								.text(`${sourceBalance}:${targetBalance}`);
+						}
+	
+						transitionCounter--;
+						if (transitionCounter <= 0) {
+							return callback && callback();
+						}
+					});
+				}
+			});
 			
 		}
 		
