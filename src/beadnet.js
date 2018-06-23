@@ -214,7 +214,10 @@ class Beadnet {
 		/* initialize with default values */
 		node.id = node.id || getName();
 		node.balance = node.balance || getRandomNumber(100);
-		node.color = node.color || this._opt.colorScheme(this._nodes.length % 20 + 1);
+		node.color = this._opt.colorScheme(this._nodes.length % 20 + 1);
+		//node.color = d3.scaleOrdinal(d3.schemeCategory20)(this._nodes.length % 20 + 1)
+
+		console.log(node);
 
 		/* save to nodes array */
 		this._nodes.push(node);
@@ -337,19 +340,23 @@ class Beadnet {
 
 		var beadArray = []
 		channelRoots.each((d) => {
+			console.log("create Beads: sourceBalance: ", d.sourceBalance);
 			beadArray = Array.from(new Array(d.sourceBalance), (x, index) => {
 				return {
 					state: 0,
 					index: index
 				}
 			});
+			console.log("create Beads: targetBalance: ", d.targetBalance);
 			beadArray.push(...Array.from(new Array(d.targetBalance), (x, index) => {
+				console.log(d.sourceBalance, index);
 				return {
 					state: 1,
-					index: d.sourceBalance + index
+					index: +d.sourceBalance + index
 				}
 			}));
 		});
+		console.log("create beads: ", beadArray);
 
 		let beadElements = channelRoots.selectAll(".bead").data(beadArray);
 		
@@ -433,7 +440,7 @@ class Beadnet {
 	 * @param {*} channelInfos 
 	 */
 	_getUniqueChannelId(channelInfos) {
-		const channelBalance = (channelInfos.sourceBalance || 0) + (channelInfos.targetBalance || 0);
+		const channelBalance = (+channelInfos.sourceBalance || 0) + (+channelInfos.targetBalance || 0);
 		let nonce = 0;
 		let id = `channel${channelInfos.source}${channelBalance}${channelInfos.target}${nonce > 0 ? nonce : ''}`;
 		while (this._channels.filter((channel) => channel.id == id).length > 0) {
@@ -509,16 +516,20 @@ class Beadnet {
 
 			if (unique) {
 				let killCounter = 0;
-				while((source.id == target.id || this.getChannels(source.id, target.id).length > 0) && killCounter < this._channels.length) {
+				while((
+					source.id == target.id || 
+					(	this.getChannels(source.id, target.id).length > 0) && 
+						killCounter < this._channels.length)
+					) {
 					source = this.getRandomNode();
 					target = this.getRandomNode();
 					killCounter++;
 				}
 			};
 
-			let sourceBalance = getRandomNumber(6);
-			let targetBalance = getRandomNumber(6);
-			sourceBalance = (!sourceBalance && !targetBalance) ?  getRandomNumber(6)+1 : sourceBalance;
+			let sourceBalance = getRandomNumber(4);
+			let targetBalance = getRandomNumber(4);
+			sourceBalance = (!sourceBalance && !targetBalance) ?  getRandomNumber(4)+1 : sourceBalance;
 
 			let channel = {
 				source: source.id, 
@@ -589,9 +600,9 @@ class Beadnet {
 	 * @param {String} targetId 
 	 * @param {Boolean} state - should the channel be highlighted [true]/false
 	 */
-	highlightChannel(sourceId, targetId, state = true) {
+	highlightChannel(sourceId, targetId, state) {
 		var channels = this.getChannels(sourceId, targetId);
-		channels.forEach((channel) => channel.hightlighted = state);
+		channels.forEach((channel) => channel.hightlighted = state ? state : !channel.hightlighted );
 		
 		this._updateChannels();
 
@@ -670,8 +681,9 @@ class Beadnet {
 	 */
 	animateBead(bead, direction, delay) {
 		var that = this;
+		direction = !!direction;
 		const select = d3.select(bead)
-		console.log(select);
+		console.log("animate bead: ", bead, direction);
 		return select.transition()
 				.delay(delay)	
 				//.ease(d3.easeLinear)
@@ -724,12 +736,11 @@ class Beadnet {
 
 				if (index >= startIndex && index <= endIndex) {
 					const delay = (endIndex-index)*100;
-					let state = channelElement.attr('channel-state');
 					transitionCounter++
-					that.animateBead(this, state, delay).on("end", (channel, a, b) => {
+					that.animateBead(this, d.state, delay).on("end", (channel, a, b) => {
 						sourceBalance--;
 						targetBalance++;
-						d.state = 0;
+						d.state = 1;
 	
 						channel.sourceBalance = sourceBalance;
 						channel.targetBalance = targetBalance;
@@ -769,15 +780,11 @@ class Beadnet {
 
 				if (index >= startIndex && index <= endIndex) {
 					const delay = (index)*100;
-					let state = channelElement.attr('channel-state');
-
-					console.log("animateBead: ", this, state);
-
 					transitionCounter++
-					that.animateBead(this, !d.state, delay).on("end", (channel, a, b) => {
+					that.animateBead(this, d.state, delay).on("end", (channel, a, b) => {
 						sourceBalance++;
 						targetBalance--;
-						d.state = 1;
+						d.state = 0;
 
 						channel.sourceBalance = sourceBalance;
 						channel.targetBalance = targetBalance;
