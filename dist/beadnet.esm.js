@@ -422,8 +422,7 @@ class Beadnet {
 				}
 			}));
 		});
-	
-		console.log("beadArray: ", beadArray);
+
 		let beadElements = channelRoots.selectAll(".bead").data(beadArray);
 		
 		beadElements.exit().remove();
@@ -622,11 +621,21 @@ class Beadnet {
 	 * @returns {Beatnet} beatnet
 	 */
 	removeChannel(sourceId, targetId) {
-		this._channels = this._channels.filter((channel) => (
-			(channel.source.id != sourceId) || 
-			(channel.target.id != targetId)
-		));
+		this._channels = this._channels.filter((channel) => {
+			if ((channel.source.id != sourceId) || (channel.target.id != targetId)) {
+				return true;
+			} else {
+				let sourceNode = this._getNodeById(sourceId);
+				sourceNode.balance += channel.sourceBalance;
+				let targetNode = this._getNodeById(targetId);
+				targetNode.balance += channel.targetBalance;
+				return false;
+			}
+		});
+		
+
 		console.log("removeChannel: ",this._channels);
+		this._updateNodes();
 		this._updateChannels();	
 		
 		return this;
@@ -758,7 +767,7 @@ class Beadnet {
 	moveBeads(sourceId, targetId, beadCount, callback) {
 		const channels = this.getChannels(sourceId, targetId);
 
-		const channel = channels[0];
+		let channel = channels[0];
 		if (!channel) {
 			console.warn("no channel found!");
 			return;
@@ -791,6 +800,9 @@ class Beadnet {
 						targetBalance++;
 						d.state = 0;
 	
+						channel.sourceBalance = sourceBalance;
+						channel.targetBalance = targetBalance;
+
 						channelElement
 							.attr("source-balance", sourceBalance)
 							.attr("target-balance", targetBalance);
@@ -821,18 +833,23 @@ class Beadnet {
 
 			var that = this;
 			var transitionCounter = 0;
-			channelElement.selectAll('.bead').each(function(d, i) {
-				let index = balance - i;
-				console.log("B: ", index, startIndex, endIndex, balance);
+			channelElement.selectAll('.bead').each(function(d, index) {
+				console.log("B: ", index, startIndex, endIndex);
 
 				if (index >= startIndex && index <= endIndex) {
-					const delay = (endIndex-index)*100;
+					const delay = (index)*100;
 					let state = channelElement.attr('channel-state');
+
+					console.log("animateBead: ", this, state);
+
 					transitionCounter++;
 					that.animateBead(this, !d.state, delay).on("end", (channel, a, b) => {
 						sourceBalance++;
 						targetBalance--;
 						d.state = 1;
+
+						channel.sourceBalance = sourceBalance;
+						channel.targetBalance = targetBalance;
 	
 						channelElement
 							.attr("source-balance", sourceBalance)

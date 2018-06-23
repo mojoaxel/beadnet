@@ -32,9 +32,9 @@ window.onload = function () {
 	// initialize BeadNet
 	window.bn = new beadnet({
 		colorScheme: colors,
-		// nodes: {
-		// 	text: 'balance'
-		// }
+		nodes: {
+			text: 'balance'
+		}
 	});
 
 	// add 10 random nodes
@@ -49,54 +49,52 @@ window.onload = function () {
 		balance: 10
 	}]);
 
-	bn.addChannel({
-		source: "A",
-		target: "Hub",
-		sourceBalance: 5,
-		targetBalance: 0
-	});
 	
-	bn.addChannel({
-		source: "B",
-		target: "Hub",
-		sourceBalance: 3,
-		targetBalance: 2
-	});
 
-	bn.addChannel({
-		source: "A",
-		target: "B",
-		sourceBalance: 3,
-		targetBalance: 2
-	});
+	function doAnimation() {
+		let x = 1;
+		const delay = 2000;
 
-	bn.highlightChannel("B", "Hub", true);
+		bn.addChannel({
+			source: "A",
+			target: "Hub",
+			sourceBalance: 5,
+			targetBalance: 0
+		});
+		
+		setTimeout(() => {
+			bn.addChannel({
+				source: "B",
+				target: "Hub",
+				sourceBalance: 3,
+				targetBalance: 2
+			});
+		}, delay * x++ );
 
-	setTimeout(() => {
-		bn.removeChannel("A", "Hub");
-	}, 1000);
+		setTimeout(() => {
+			bn.addChannel({
+				source: "A",
+				target: "B",
+				sourceBalance: 3,
+				targetBalance: 2
+			});
+		}, delay * x++ );
 
-	// setTimeout(() => {
-	// 	bn.addChannel({
-	// 		source: "A",
-	// 		target: "Hub",
-	// 		sourceBalance: 5,
-	// 		targetBalance: 0
-	// 	});
-	// }, 4000);
+		setTimeout(() => {
+			bn.removeChannel("A", "B");
+		}, delay * x++ );
+		
+		setTimeout(() => {
+			bn.removeChannel("B", "Hub");
+		}, delay * x++ );
 
-	// setTimeout(() => {
-	// 	bn.removeChannel("A", "Hub");
-	// }, 5000);
+		setTimeout(() => {
+			bn.removeChannel("A", "Hub");
+			setTimeout(doAnimation, 1000);
+		}, delay * x++ );
+	}
 
-	// setTimeout(() => {
-	// 	bn.addChannel({
-	// 		source: "B",
-	// 		target: "Hub",
-	// 		sourceBalance: 5,
-	// 		targetBalance: 0
-	// 	})
-	// }, 4000);
+	doAnimation();
 
 };
 </script>
