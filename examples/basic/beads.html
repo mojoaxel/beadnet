@@ -51,6 +51,15 @@ window.onload = function () {
 	}, {
 		id: "Hub2",
 		balance: 10
+	}, {
+		id: "C",
+		balance: 10
+	}, {
+		id: "D",
+		balance: 10
+	}, {
+		id: "E",
+		balance: 10
 	}]);
 
 	bn.addChannels([{
@@ -67,6 +76,21 @@ window.onload = function () {
 		source: "Hub2",
 		target: "B",
 		sourceBalance: 5,
+		targetBalance: 0
+	},{
+		source: "C",
+		target: "Hub1",
+		sourceBalance: 6,
+		targetBalance: 0
+	},{
+		source: "D",
+		target: "Hub1",
+		sourceBalance: 5,
+		targetBalance: 0
+	},{
+		source: "E",
+		target: "Hub1",
+		sourceBalance: 3,
 		targetBalance: 0
 	}]);
 
