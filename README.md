@@ -1,4 +1,4 @@
-# BeadNet
+# BeadNet (Alpha Preview)
 A visualisation library for peer-to-peer payment channel networks.
 
 *This software is in a very eary stage of development! Even basic functionallity is still broken and brakeing changes may occure at eny time.*
