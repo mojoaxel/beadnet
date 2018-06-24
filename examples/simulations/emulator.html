@@ -32,29 +32,30 @@ body, html {
 <div id="controls">
     <fieldset id="add-node">
         <legend>add node</legend>
-        <input type="text" id="node-id" value="" />
+        <input type="text" id="node-id" value="" placeholder="node ID"/>
         <button id="addNode">Add Node</button>
+        <button id="removeNode">Remove Node</button>
     </fieldset>
     <fieldset id="add-channel">
         <legend>add channel</legend>
-        <input type="text" id="source-id" value="" />
-        <input type="text" id="target-id" value="" />
-        <input type="text" id="source-balance" value="" />
-        <input type="text" id="target-balance" value="" />
+        <input type="text" id="source-id" value="" placeholder="source ID"/>
+        <input type="text" id="target-id" value="" placeholder="target ID"/>
+        <input type="text" id="source-balance" value="" placeholder="source balance"/>
+        <input type="text" id="target-balance" value="" placeholder="target balance"/>
         <button id="addChannel">Add Channel</button>
         <button id="removeChannel">Remove Channel</button>
     </fieldset>
     <fieldset id="highight-channel">
         <legend>highlight channel</legend>
-        <input type="text" id="source-id" value="" />
-        <input type="text" id="target-id" value="" />
+        <input type="text" id="source-id" value="" placeholder="source ID"/>
+        <input type="text" id="target-id" value="" placeholder="target ID"/>
         <button id="highightChannel">Highlight</button>
     </fieldset>
 	<fieldset id="move-beads">
         <legend>move beads</legend>
-        <input type="text" id="source-id" value="" />
-        <input type="text" id="target-id" value="" />
-        <input type="text" id="amount" value="" />
+        <input type="text" id="source-id" value="" placeholder="source ID"/>
+        <input type="text" id="target-id" value="" placeholder="target ID"/>
+        <input type="text" id="amount" value="" placeholder="amount"/>
         <button id="moveBeads">Move Beads</button>
     </fieldset>
 
@@ -81,24 +82,30 @@ window.onload = function () {
         //     text: 'balance'
         // }
     });
-    
+
     bn.addNodes([{
         id: "A",
         balance: 50
     }, {
         id: "B",
         balance: 50
-    }])
+    }]);
 
 	var btnAddNode = document.querySelector('button#addNode');
 	btnAddNode.addEventListener('click', function() {
         var node = bn.createRandomNodes(1)[0];
         var nodeId = document.querySelector('#add-node #node-id').value;
-        if (nodeId) node.id = nodeId
+        if (nodeId) node.id = nodeId;
 		bn.addNode(node);
     });
-    
 
+    var btnRemoveNode = document.querySelector('button#removeNode');
+    btnRemoveNode.addEventListener('click', function() {
+        var nodeId = document.querySelector('#add-node #node-id').value;
+        if (nodeId) {
+            bn.removeNode(nodeId);
+        }
+    });
 
 	var btnAddChannel = document.querySelector('button#addChannel');
 	btnAddChannel.addEventListener('click', function() {
@@ -123,7 +130,7 @@ window.onload = function () {
         const target = document.querySelector('#add-channel #target-id').value;
 		bn.removeChannel(source, target);
     });
-    
+
     var btnHighightChannel = document.querySelector('button#highightChannel');
 	btnHighightChannel.addEventListener('click', function() {
         const source = document.querySelector('#move-beads #source-id').value;
