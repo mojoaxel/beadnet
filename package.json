@@ -1,6 +1,6 @@
 {
   "name": "beadnet",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A visualisation library for peer-to-peer payment channel networks.",
   "module": "dist/beadnet.esm.js",
   "browser": "dist/beadnet.standalone.min.js",
@@ -27,15 +27,17 @@
   },
   "homepage": "https://github.com/mojoaxel/beadnet#readme",
   "devDependencies": {
+    "async": "^2.6.1",
     "babel-core": "^6.26.3",
     "babel-plugin-external-helpers": "^6.22.0",
     "babel-preset-env": "^1.7.0",
     "babel-preset-es2015": "^6.24.1",
+    "d3": "^5.5.0",
     "jsdoc": "^3.5.5",
     "markdown-to-html": "0.0.13",
-    "reload": "^2.2.2",
-    "rollup": "^0.59.1",
-    "rollup-plugin-babel": "^3.0.4",
+    "reload": "^2.3.0",
+    "rollup": "^0.59.4",
+    "rollup-plugin-babel": "^3.0.5",
     "rollup-plugin-commonjs": "^9.1.3",
     "rollup-plugin-node-resolve": "^3.3.0",
     "rollup-plugin-sourcemaps": "^0.4.2",
@@ -43,13 +45,11 @@
     "rollup-watch": "^4.3.1"
   },
   "dependencies": {
-    "async": "^2.6.1",
-    "d3": "^5.4.0",
     "datasets-unisex-first-names-en": "^1.1.0",
     "extend": "^3.0.1",
     "loglevel": "^1.6.1"
   },
   "peerDependencies": {
-    "d3": "4"
+    "d3": ">=4"
   }
 }
