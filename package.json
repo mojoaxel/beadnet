@@ -1,6 +1,6 @@
 {
   "name": "beadnet",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "description": "A visualisation library for peer-to-peer payment channel networks.",
   "module": "dist/beadnet.esm.js",
   "browser": "dist/beadnet.standalone.min.js",
@@ -9,7 +9,7 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "pretest": "npm run build",
-    "docs": "jsdoc src --recurse --destination docs",
+    "docs": "jsdoc -c .jsdocs.json src --recurse --destination docs",
     "index": "markdown README.md -f gfm -t BeadNet -s ./docs/styles/jsdoc-default.css > index.html",
     "dist": "npm run build && npm run docs && npm run index"
   },

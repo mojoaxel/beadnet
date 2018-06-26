@@ -127,12 +127,21 @@ class Beadnet {
 	}
 
 	/**
-	 * Return the node element with the given id.
+	 * Return the node with the given id.
 	 * @param {String} id - the id of the node to find.
-	 * @returns {Node|undefinded}
+	 * @returns {Node|undefined}
 	 */
 	_getNodeById(id) {
 		return this._nodes.find((node) => node.id == id);
+	}
+
+	/**
+	 * Return the channel with the given id.
+	 * @param {String} id - the id of the node to find.
+	 * @returns {Channel|undefined}
+	 */
+	_getChannelById(id) {
+		return this._channels.find((ch) => ch.id == id);
 	}
 
 	/**
@@ -234,8 +243,7 @@ class Beadnet {
 			.attr("id", (data) => data.id)
 			.attr("balance", (data) => data.balance)
 			.style("stroke", opt.nodes.strokeColor)
-			.style("stroke-width", opt.nodes.strokeWidth)
-		.merge(this._nodeElements);
+			.style("stroke-width", opt.nodes.strokeWidth);
 				
 		nodeParent.append("circle")
 			.attr("class", "node-circle")
@@ -271,13 +279,13 @@ class Beadnet {
 
 		/* update existing nodes */
 		this._nodeElements
-			.attr("balance", (data) => data.balance)
-			.selectAll('.node-text')
-			.text((d) => d[opt.nodes.text]);
+			.attr("balance", (d) => d.balance)
+			.selectAll('.node-text-balance')
+				.text((d) => d.balance);
 
 		this.simulation
 			.nodes(this._nodes)
-			.alphaTarget(0.5)
+			.alphaTarget(1)
 			.restart();
 
 		this._nodeElements = this.nodeContainer
@@ -300,8 +308,6 @@ class Beadnet {
 		node.balance = node.balance || getRandomNumber(100);
 		node.color = this._opt.colorScheme(this._nodes.length % 20 + 1);
 		//node.color = d3.scaleOrdinal(d3.schemeCategory20)(this._nodes.length % 20 + 1)
-
-		console.log(node);
 
 		/* save to nodes array */
 		this._nodes.push(node);
@@ -374,6 +380,28 @@ class Beadnet {
 	_updateChannels() {
 		const opt = this._opt;
 
+		/* update beads of each channel */
+		this._channels =  this._channels.map((ch) => {
+			let index = 0;
+			ch.beads = Array.from(new Array(ch.sourceBalance), (x) => {
+				return {
+					state: 0,
+					index: index,
+					//id: `bead_${ch.id}_source_${index}x${ch.sourceBalance}`
+					id: `bead_${ch.id}_source_${index++}`
+				}
+			});
+			ch.beads.push(...Array.from(new Array(ch.targetBalance), (x) => {
+				return {
+					state: 1,
+					index: +ch.sourceBalance + index,
+					//id: `bead_${ch.id}_target_${index}x${ch.targetBalance}`
+					id: `bead_${ch.id}_target_${index++}`
+				}
+			}));
+			return ch;
+		});
+
 		console.log("_updateChannels: ", this._channels);
 
 		this._channelElements = this.channelContainer.selectAll(".channel").data(this._channels, (d) => d.id);
@@ -395,7 +423,7 @@ class Beadnet {
 				.attr("source-id", (d) => d.source.id)
 				.attr("target-id", (d) => d.target.id)
 				.attr("highlighted", (d) => d.hightlighted);
-		
+
 		channelRoots
 			.append("path")
 				.attr("class", "path")
@@ -422,34 +450,18 @@ class Beadnet {
 						.text((d) => `${d.sourceBalance}:${d.targetBalance}`);
 		}
 
-		var beadArray = [];
-		channelRoots.each((d) => {
-			console.log("create Beads: sourceBalance: ", d.sourceBalance);
-			beadArray = Array.from(new Array(d.sourceBalance), (x, index) => {
-				return {
-					state: 0,
-					index: index
-				}
-			});
-			console.log("create Beads: targetBalance: ", d.targetBalance);
-			beadArray.push(...Array.from(new Array(d.targetBalance), (x, index) => {
-				console.log(d.sourceBalance, index);
-				return {
-					state: 1,
-					index: +d.sourceBalance + index
-				}
-			}));
-		});
-		console.log("create beads: ", beadArray);
+		var beadsContainer = channelRoots.append("g").attr("class", "beads");
 
-		let beadElements = channelRoots.selectAll(".bead").data(beadArray);
-		
-		beadElements.exit().remove();
+		let beadElements = beadsContainer.selectAll(".bead").data((d) => d.beads, (d) => d.id);
+
+		beadElements.exit().transition().duration(800).style("opacity", 0).remove();
 		
 		let beadElement = beadElements.enter().append("g")
 			.attr("class", "bead")	
 			.attr("channel-state", (d) => d.state) //TODO: 0 or 1?
-			.attr("index", (d) => d.index);
+			.attr("id", (d) => d.id)	
+			.attr("index", (d) => d.index)
+		.merge(beadElements);
 	
 		beadElement.append("circle")
 			.attr("r",  opt.beads.radius)
@@ -472,6 +484,7 @@ class Beadnet {
 				.text((d) => d.index);
 		}
 
+
 		/* update channel */
 		this._channelElements
 			.attr("source-balance", (d) => d.sourceBalance)
@@ -491,7 +504,6 @@ class Beadnet {
 				.text((d) => `${d.sourceBalance}:${d.targetBalance}`);
 		}
 
-
 		/***************************************************/
 		/* update channel styles */
 		this._channelElements.selectAll('[highlighted=true] .path')
@@ -499,21 +511,18 @@ class Beadnet {
 
 		this._channelElements.selectAll('[highlighted=false] .path')
 			.style("stroke", opt.channels.color);
-
 		/************************************************* */
-
-
 
 		/* update this._paths; needed in this._ticked */
 		this._paths = this.channelContainer.selectAll(".channel .path");
-		this.beadElements = this.channelContainer.selectAll(".channel .bead");
+		this.beadElements = this.channelContainer.selectAll(".channel .beads .bead");
 
 		this.simulation
 			.force("link")
 			.links(this._channels);
 
 		this.simulation
-			.alphaTarget(0.5)
+			.alphaTarget(0)
 			.restart();
 
 		return this._channelElements;
@@ -677,6 +686,94 @@ class Beadnet {
 	}
 
 	/**
+	 * Transfer a amount from the source node banlance to or from the channel.
+	 * @param {String} sourceId - source node id
+	 * @param {String} targetId - target node id
+	 * @param {Integer} amount - positive if moved from not to channel; negative if moved from channel to node.
+	 */
+	changeChannelSourceBalance(sourceId, targetId, amount) {
+		const channels = this.getChannels(sourceId, targetId);
+		if (!channels || channels.length <= 0) {
+			//TODO: throw an error
+			console.error(`no channel found between "${sourceId}" and "${targetId}"`);
+			return this;
+		}
+		//TODO: handle error if more than one channel is found.
+		let channel = channels[0];
+		let node = this._getNodeById(channel.source.id);
+		//TODO: throw error if node not found;
+
+		if (amount > 0) {
+			amount = Math.abs(amount);
+			if (node.balance < amount) {
+				//TODO: throw an error
+				console.error(`node ${sourceId} has not enough balance (${node.balance}) to refund the channel by ${amount}`);
+				return this;
+			}
+			node.balance -= amount;
+			channel.sourceBalance += amount;
+		} else {
+			amount = Math.abs(amount);
+			if (channel.sourceBalance < amount) {
+				//TODO: throw an error
+				console.error(`sourceBalance (${sourceId}) is not enough (${channel.sourceBalance}) to remove an amount of ${amount}`);
+				return this;
+			}
+			node.balance += amount;
+			channel.sourceBalance -= amount;
+		}
+
+		this._updateNodes();
+		this._updateChannels();
+
+		return this;
+	}
+
+	/**
+	 * Transfer a amount from the target node banlance to or from the channel.
+	 * @param {String} sourceId - source node id
+	 * @param {String} targetId - target node id
+	 * @param {Integer} amount - positive if moved from node to channel; negative if moved from channel to node.
+	 */
+	changeChannelTargetBalance(sourceId, targetId, amount) {
+		const channels = this.getChannels(sourceId, targetId);
+		if (!channels || channels.length <= 0) {
+			//TODO: throw an error
+			console.error(`no channel found between "${sourceId}" and "${targetId}"`);
+			return this;
+		}
+		//TODO: handle error if more than one channel is found.
+		let channel = channels[0];
+		let node = this._getNodeById(channel.target.id);
+		//TODO: throw error if node not found;
+
+		if (amount > 0) {
+			amount = Math.abs(amount);
+			if (node.balance < amount) {
+				//TODO: throw an error
+				console.error(`node ${targetId} has not enough balance (${node.balance}) to refund the channel by ${amount}`);
+				return this;
+			}
+			node.balance -= amount;
+			channel.targetBalance += amount;
+		} else {
+			amount = Math.abs(amount);
+			if (channel.targetBalance < amount) {
+				//TODO: throw an error
+				console.error(`targetBalance (${targetId}) is not enough (${channel.targetBalance}) to remove an amount of ${amount}`);
+				return this;
+			}
+			node.balance += amount;
+			channel.targetBalance -= amount;
+		}
+
+		this._updateNodes();
+		this._updateChannels();
+
+		return this;
+	}
+
+	/**
 	 * Mark a channel as "hightlighted"
 	 * @param {String} sourceId 
 	 * @param {String} targetId 
@@ -700,7 +797,7 @@ class Beadnet {
 		const bead = d3.select(b);
 		const index = d.index;
 		const state = bead.attr("channel-state"); // state 0=source, 1=target
-		const channel = d3.select(bead.node().parentNode);
+		const channel = d3.select(bead.node().parentNode.parentNode);
 		const path = channel.select('.path').node();
 
 		const channelData = channel.data()[0];
@@ -765,20 +862,19 @@ class Beadnet {
 		var that = this;
 		direction = !!direction;
 		const select = d3.select(bead);
-		console.log("animate bead: ", bead, direction);
 		return select.transition()
-				.delay(delay)	
-				//.ease(d3.easeLinear)
-				.ease(d3.easeQuadInOut)
-				.duration(1000)
-				.attrTween("channel-state", function(a) { return function(t) { 
-					that.tickedBeads();
-					if (direction) {
-						return 1-t;
-					} else {
-						return t
-					}
-				}});
+			.delay(delay)	
+			//.ease(d3.easeLinear)
+			.ease(d3.easeQuadInOut)
+			.duration(1000)
+			.attrTween("channel-state", function(a) { return function(t) { 
+				that.tickedBeads();
+				if (direction) {
+					return 1-t;
+				} else {
+					return t
+				}
+			}});
 	}
 
 	/**
@@ -793,38 +889,35 @@ class Beadnet {
 
 		let channel = channels[0];
 		if (!channel) {
-			console.warn("no channel found!");
+			//TODO: throw error!?
+			console.error("no channel found!");
 			return;
 		}
-
-		console.log("moveBeads ", beadCount);
 
 		// TODO: get channel with source and target
 		const channelElement = d3.select(`#${channel.id}`);
 
 		if (channel.source.id == sourceId) {
 
-			let sourceBalance = +channelElement.attr("source-balance");
-			let targetBalance = channelElement.attr("target-balance");
-
+			let sourceBalance = channel.sourceBalance;
+			let targetBalance = channel.targetBalance;
 			var startIndex = sourceBalance - beadCount;
 			var endIndex = startIndex + beadCount-1;
 
 			var that = this;
 			var transitionCounter = 0;
 			channelElement.selectAll('.bead').each(function(d, index) {
-				console.log("A: ", index, startIndex, endIndex);
-
 				if (index >= startIndex && index <= endIndex) {
 					const delay = (endIndex-index)*100;
 					transitionCounter++;
-					that.animateBead(this, d.state, delay).on("end", (channel, a, b) => {
+					that.animateBead(this, d.state, delay).on("end", (ch, a, b) => {
 						sourceBalance--;
 						targetBalance++;
 						d.state = 1;
 	
 						channel.sourceBalance = sourceBalance;
 						channel.targetBalance = targetBalance;
+						that._updateChannels();
 
 						channelElement
 							.attr("source-balance", sourceBalance)
@@ -845,30 +938,25 @@ class Beadnet {
 
 		} else {
 
-			let sourceBalance = +channelElement.attr("source-balance");
-			let targetBalance = +channelElement.attr("target-balance");
-			const balance = sourceBalance + +targetBalance;
-
-			console.log("B balance: ", balance);
-
-			var startIndex = balance - targetBalance;
+			let sourceBalance = channel.sourceBalance;
+			let targetBalance = channel.targetBalance;
+			var startIndex = (sourceBalance + targetBalance) - targetBalance;
 			var endIndex = startIndex + beadCount-1;
 
 			var that = this;
 			var transitionCounter = 0;
 			channelElement.selectAll('.bead').each(function(d, index) {
-				console.log("B: ", index, startIndex, endIndex);
-
 				if (index >= startIndex && index <= endIndex) {
 					const delay = (index)*100;
 					transitionCounter++;
-					that.animateBead(this, d.state, delay).on("end", (channel, a, b) => {
+					that.animateBead(this, d.state, delay).on("end", (ch, a, b) => {
 						sourceBalance++;
 						targetBalance--;
 						d.state = 0;
 
 						channel.sourceBalance = sourceBalance;
 						channel.targetBalance = targetBalance;
+						that._updateChannels();
 	
 						channelElement
 							.attr("source-balance", sourceBalance)
@@ -889,6 +977,7 @@ class Beadnet {
 			
 		}
 		
+		return this;
 	}
 
 	/**
