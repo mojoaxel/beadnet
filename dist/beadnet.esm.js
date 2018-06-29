@@ -1,10 +1,6 @@
-import names from 'datasets-unisex-first-names-en';
 import log from 'loglevel';
 import extend from 'extend';
-
-function getName() {
-	return names[Math.floor(Math.random()*names.length)];
-}
+import names from 'datasets-unisex-first-names-en';
 
 log.enableAll();
 log.setLevel("TRACE");
@@ -82,9 +78,207 @@ function extendDefaultOptions(options) {
 	return opt;
 }
 
-const getRandomNumber = function(max) {
+function getRandomNumber(max) {
 	return Math.floor(Math.random() * max);
-};
+}
+
+function getName() {
+	return names[Math.floor(Math.random()*names.length)];
+}
+
+class Nodes {
+
+    constructor(options) {
+        this._nodes = [];
+
+        this._opt = options.opt;
+        this.simulation = options.simulation;
+        this.nodeContainer = options.nodeContainer;
+    }
+
+	getNodes() {
+		return this._nodes;
+	}
+
+	/**
+	 * Return the node with the given id.
+	 * @param {String} id - the id of the node to find.
+	 * @returns {Node|undefined}
+	 */
+	getNodeById(id) {
+		return this._nodes.find((node) => node.id == id);
+    }
+    
+    /**
+	 * Update DOM elements after this._nodes has been updated.
+	 * This creates the SVG repensentation of a node.
+	 * 
+	 * @private
+	 */
+	update() {
+		const opt = this._opt;
+
+		console.log("update: ", this._nodes);
+
+		this._nodeElements = this.nodeContainer
+			.selectAll(".node")
+			.data(this._nodes, (data) => data.id);
+
+		/* remove deleted nodes */
+		this._nodeElements.exit().transition().duration(1000).style("opacity", 0).remove();
+
+		/* create new nodes */
+		var nodeParent = this._nodeElements.enter().append("g")
+			.attr("class", "node")
+			.attr("id", (data) => data.id)
+			.attr("balance", (data) => data.balance)
+			.style("stroke", opt.nodes.strokeColor)
+			.style("stroke-width", opt.nodes.strokeWidth);
+				
+		nodeParent.append("circle")
+			.attr("class", "node-circle")
+			.attr("fill", (data) => data.color)
+			.attr("r", opt.nodes.radius)
+			.style("cursor", "pointer");
+				
+		nodeParent.append("text")
+			.style("stroke-width", 0.5)
+			.attr("class", "node-text-id")
+			.attr("stroke", opt.container.backgroundColor)
+			.attr("fill", opt.container.backgroundColor)
+			.attr("font-family", "sans-serif")
+			.attr("font-size", "15px")
+			.attr("y", "0px")
+			.attr("text-anchor", "middle")
+			.attr("pointer-events", "none")
+			.text((d) => d.id);
+
+		nodeParent.append("text")
+			.style("stroke-width", 0.5)
+			.attr("class", "node-text-balance")
+			.attr("stroke", opt.container.backgroundColor)
+			.attr("fill", opt.container.backgroundColor)
+			.attr("font-family", "sans-serif")
+			.attr("font-size", "12px")
+			.attr("y", "15px")
+			.attr("text-anchor", "middle")
+			.attr("pointer-events", "none")
+			.text((d) => d.balance);
+
+		nodeParent.call(d3.drag()
+            .on("start", (d) => {
+                d.fx = d.x;
+		        d.fy = d.y;
+            })
+            .on("drag", (d) => {
+                d.fx = d3.event.x; 
+		        d.fy = d3.event.y;
+            })
+            .on("end", (d) => {
+                d.fx = null;
+		        d.fy = null;
+            })
+        );
+
+		/* update existing nodes */
+		this._nodeElements
+			.attr("balance", (d) => d.balance)
+			.selectAll('.node-text-balance')
+				.text((d) => d.balance);
+
+        // TODO:
+		this.simulation
+			.nodes(this._nodes)
+			.alphaTarget(1)
+			.restart();
+
+		this._nodeElements = this.nodeContainer.selectAll(".node");
+
+		return this._nodeElements;
+	}
+
+	/**
+	 * Adds a new node to the network.
+	 * 
+	 * @param {Node} node 
+	 * @returns {BeatNet}
+	 */
+	addNode(node) {
+		node = node || {};
+
+		/* initialize with default values */
+		node.id = node.id || getName();
+        node.balance = node.balance || getRandomNumber(100);
+        node.color = this._opt.colorScheme(this._nodes.length % 20 + 1);
+
+		/* save to nodes array */
+		this._nodes.push(node);
+		this.update();
+
+		/* make this funktion chainable */
+		return this;
+	}
+
+	/**
+	 * Adds multible new nodes to the network.
+	 * 
+	 * @param {Array<Node>} nodes
+	 * @returns {BeatNet}
+	 */
+	addNodes(nodes) {
+		nodes.forEach((node) => this.addNode(node));
+
+		/* make this funktion chainable */
+		return this;
+	}
+
+	/**
+	 * Removes a the node with the given id from the network.
+	 * 
+	 * @param {String} nodeId 
+	 * @returns {BeatNet}
+	 */
+	removeNode(nodeId) {
+		this._nodes = this._nodes.filter((node) => node.id != nodeId);
+	
+		this.update();	
+		
+		/* make this funktion chainable */
+		return this;
+	};
+
+	/**
+	 * Create new nodes with random names.
+	 * @param {Integer} [count=1] - how many nodes.
+	 * @returns {Node}
+	 */
+	createRandomNodes(count) {
+		if ((typeof count !== "undefined" && typeof count !== "number") || count < 0) {
+			throw new TypeError('parameter count must be a positive number');
+		}
+		return Array.from(new Array(count), (x) => {
+			return {
+				id: getName(),
+				balance: getRandomNumber(100)
+			};
+		});
+	}
+
+	/**
+	 * TODO: getRandomNode
+	 * @returns {Node}
+	 */
+	getRandomNode() {
+		return this._nodes[getRandomNumber(this._nodes.length)];
+    }
+    
+    render() {
+        if (this._nodeElements) {
+			this._nodeElements.attr("transform", (data) => `translate(${data.x},${data.y})`);
+		}
+    }
+
+}
 
 /**
  * TODO:
@@ -114,32 +308,53 @@ class Beadnet {
 
 		/* create a SVG-container-element for all nodes and all channels */
 		this.channelContainer = this.chart.append("g").attr("class", "channels");
-		this.nodeContainer = this.chart.append("g").attr("class", "nodes");
 		
-		this._nodes = [];
+		let nodeContainer = this.chart.append("g").attr("class", "nodes");
+	
+
 		this._channels = [];
 		this.beadElements = [];
 
 		this.simulation = this._createSimulation();
+
+		this.nodes = new Nodes({
+			opt: this._opt,
+			nodeContainer,
+			simulation : this.simulation
+		});
 		
 		this.updateSimulationCenter();
 
 		this.behaviors = this.createBehaviors();
 		this.svg.call(this.behaviors.zoom);
 
-		this._updateNodes();
+		this.nodes.update();
 		
 		window.addEventListener("resize", this.onResize.bind(this));
 	}
 
-	/**
-	 * Return the node with the given id.
-	 * @param {String} id - the id of the node to find.
-	 * @returns {Node|undefined}
-	 */
-	_getNodeById(id) {
-		return this._nodes.find((node) => node.id == id);
+	addNode(node) {
+		return this.nodes.addNode(node)
 	}
+
+	addNodes(nodes) {
+		return this.nodes.addNodes(nodes)
+	}
+
+	removeNode(id) {
+		return this.nodes.removeNode(id);
+		//TODO remove all channels of this node
+	}
+
+	createRandomNodes(amount = 1) {
+		return this.nodes.createRandomNodes(amount);
+	}
+
+	getRandomNode() {
+		return this.nodes.getRandomNode();
+	}
+
+
 
 	/**
 	 * Return the channel with the given id.
@@ -167,7 +382,7 @@ class Beadnet {
 		// 	.alphaTarget(0)
 		// 	.on("tick", this._ticked.bind(this));
 
-		return d3.forceSimulation(this._nodes)
+		return d3.forceSimulation(/*this.nodes.getNodes()*/)
 			.force("charge", d3.forceManyBody().strength(-3000))
 			.force("link", d3.forceLink(this._channels).strength(0.005).distance(this.forceDistance))
 			.force("x", d3.forceX())
@@ -223,159 +438,6 @@ class Beadnet {
 		this.simulation
 			.force("center", d3.forceCenter(centerX, centerY))
 			.restart();
-	}
-
-	/**
-	 * Update DOM elements after this._nodes has been updated.
-	 * This creates the SVG repensentation of a node.
-	 * 
-	 * @private
-	 */
-	_updateNodes() {
-		const opt = this._opt;
-
-		console.log("_updateNodes: ", this._nodes);
-
-		this._nodeElements = this.nodeContainer
-			.selectAll(".node")
-			.data(this._nodes, (data) => data.id);
-
-		/* remove deleted nodes */
-		this._nodeElements.exit().transition().duration(1000).style("opacity", 0).remove();
-
-		/* create new nodes */
-		var nodeParent = this._nodeElements.enter().append("g")
-			.attr("class", "node")
-			.attr("id", (data) => data.id)
-			.attr("balance", (data) => data.balance)
-			.style("stroke", opt.nodes.strokeColor)
-			.style("stroke-width", opt.nodes.strokeWidth);
-				
-		nodeParent.append("circle")
-			.attr("class", "node-circle")
-			.attr("fill", (data) => data.color)
-			.attr("r", opt.nodes.radius)
-			.style("cursor", "pointer");
-				
-		nodeParent.append("text")
-			.style("stroke-width", 0.5)
-			.attr("class", "node-text-id")
-			.attr("stroke", opt.container.backgroundColor)
-			.attr("fill", opt.container.backgroundColor)
-			.attr("font-family", "sans-serif")
-			.attr("font-size", "15px")
-			.attr("y", "0px")
-			.attr("text-anchor", "middle")
-			.attr("pointer-events", "none")
-			.text((d) => d.id);
-
-		nodeParent.append("text")
-			.style("stroke-width", 0.5)
-			.attr("class", "node-text-balance")
-			.attr("stroke", opt.container.backgroundColor)
-			.attr("fill", opt.container.backgroundColor)
-			.attr("font-family", "sans-serif")
-			.attr("font-size", "12px")
-			.attr("y", "15px")
-			.attr("text-anchor", "middle")
-			.attr("pointer-events", "none")
-			.text((d) => d.balance);
-
-		nodeParent.call(this.behaviors.drag);
-
-		/* update existing nodes */
-		this._nodeElements
-			.attr("balance", (d) => d.balance)
-			.selectAll('.node-text-balance')
-				.text((d) => d.balance);
-
-		this.simulation
-			.nodes(this._nodes)
-			.alphaTarget(1)
-			.restart();
-
-		this._nodeElements = this.nodeContainer
-			.selectAll(".node");
-
-		return this._nodeElements;
-	}
-
-	/**
-	 * Adds a new node to the network.
-	 * 
-	 * @param {Node} node 
-	 * @returns {BeatNet}
-	 */
-	addNode(node) {
-		node = node || {};
-
-		/* initialize with default values */
-		node.id = node.id || getName();
-		node.balance = node.balance || getRandomNumber(100);
-		node.color = this._opt.colorScheme(this._nodes.length % 20 + 1);
-		//node.color = d3.scaleOrdinal(d3.schemeCategory20)(this._nodes.length % 20 + 1)
-
-		/* save to nodes array */
-		this._nodes.push(node);
-		this._updateNodes();
-
-		/* make this funktion chainable */
-		return this;
-	}
-
-	/**
-	 * Adds multible new nodes to the network.
-	 * 
-	 * @param {Array<Node>} nodes
-	 * @returns {BeatNet}
-	 */
-	addNodes(nodes) {
-		nodes.forEach((node) => this.addNode(node));
-
-		/* make this funktion chainable */
-		return this;
-	}
-
-	/**
-	 * Removes a the node with the given id from the network.
-	 * 
-	 * @param {String} nodeId 
-	 * @returns {BeatNet}
-	 */
-	removeNode(nodeId) {
-		this._nodes = this._nodes.filter((node) => node.id != nodeId);
-		this._channels = this._channels.filter((channel) => channel.source.id !== nodeId && channel.target.id != nodeId);
-
-		this._updateNodes();	
-		this._updateChannels();	
-		
-		/* make this funktion chainable */
-		return this;
-	};
-
-	/**
-	 * Create new nodes with random names.
-	 * @param {Integer} [count=1] - how many nodes.
-	 * @returns {Node}
-	 */
-	createRandomNodes(count) {
-		if ((typeof count !== "undefined" && typeof count !== "number") || count < 0) {
-			throw new TypeError('parameter count must be a positive number');
-		}
-		return Array.from(new Array(count), (x) => {
-			return {
-				id: getName(),
-				balance: getRandomNumber(100)
-			};
-		});
-	}
-
-	/**
-	 * TODO: getRandomNode
-	 * @returns {Node}
-	 */
-	getRandomNode() {
-		return this._nodes[getRandomNumber(this._nodes.length)];
 	}
 
 	/**
@@ -572,8 +634,8 @@ class Beadnet {
 			throw new Error("Its not possible to create a channel without any funds. Please add a sourceBalance and/or targetBalance.");
 		}
 
-		let source = this._getNodeById(channel.source);
-		let target = this._getNodeById(channel.target);
+		let source = this.nodes.getNodeById(channel.source);
+		let target = this.nodes.getNodeById(channel.target);
 
 		if (source.balance < channel.sourceBalance) {
 			throw new Error("Insufficient Funds. The source node has not enough funds to open this channel");
@@ -585,7 +647,7 @@ class Beadnet {
 		/* update balance of the source and target nodes */
 		source.balance -= channel.sourceBalance;
 		target.balance -= channel.targetBalance;
-		this._updateNodes();
+		this.nodes.update();
 
 		/* update the internal channel list */
 		const id = this._getUniqueChannelId(channel);
@@ -675,9 +737,9 @@ class Beadnet {
 			if ((channel.source.id != sourceId) || (channel.target.id != targetId)) {
 				return true;
 			} else {
-				let sourceNode = this._getNodeById(sourceId);
+				let sourceNode = this.nodes.getNodeById(sourceId);
 				sourceNode.balance += channel.sourceBalance;
-				let targetNode = this._getNodeById(targetId);
+				let targetNode = this.nodes.getNodeById(targetId);
 				targetNode.balance += channel.targetBalance;
 				return false;
 			}
@@ -685,7 +747,7 @@ class Beadnet {
 		
 
 		console.log("removeChannel: ",this._channels);
-		this._updateNodes();
+		this.nodes.update();
 		this._updateChannels();	
 		
 		return this;
@@ -741,7 +803,7 @@ class Beadnet {
 			channel.sourceBalance -= amount;
 		}
 
-		this._updateNodes();
+		this.nodes.update();
 		this._updateChannels();
 
 		return this;
@@ -785,7 +847,7 @@ class Beadnet {
 			channel.targetBalance -= amount;
 		}
 
-		this._updateNodes();
+		this.nodes.update();
 		this._updateChannels();
 
 		return this;
@@ -838,9 +900,8 @@ class Beadnet {
 	 * @private
 	 */
 	_ticked() {
-		if (this._nodeElements) {
-			this._nodeElements.attr("transform", (data) => `translate(${data.x},${data.y})`);
-		}
+		this.nodes.render();
+
 		if (this._paths) {
 			this._paths.attr("d", (d) => {
 				// var count = this._channels.filter((c) => ((d.source.id === d.source.id) && (d.target.id === d.target.id))).length;

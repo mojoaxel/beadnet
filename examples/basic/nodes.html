@@ -51,7 +51,7 @@ window.onload = function () {
  // randomly add and remove nodes
 	setInterval(() => {
 		var rand = Math.random();
-		if (rand >= 0.5) {
+		if (rand >= 0.55) {
 			// remove a random node
 			var node = bn.getRandomNode()
 			if (node) {
@@ -64,7 +64,7 @@ window.onload = function () {
 				bn.addNodes(node);
 			}
 		}
-	},1000);
+	},500);
 
 };
 </script>
