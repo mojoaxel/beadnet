@@ -25,7 +25,8 @@ const defaultOptions = {
 		color: 'gray',
 		colorHighlighted: null,
 
-		strokeWidth: 6,
+		/* Number or 'auto' */
+		strokeWidth: 'auto', 
 		strokeColor: null,
 
 		/* show channel balance as text path */
@@ -34,11 +35,11 @@ const defaultOptions = {
 
 	beads: {
 		radius: 10,
-		spacing: 0,
+		spacing: -0.5,
 		strokeWidth: 2,
 		strokeColor: null,
 
-		showIndex: null
+		showIndex: true
 	}
 };
 
@@ -60,8 +61,13 @@ function extendDefaultOptions(options) {
 	opt.beads.strokeColor = opt.beads.strokeColor || opt.container.backgroundColor;
 	opt.beads.animation = opt.beads.animation || d3.easeExp;
 	
-	opt.beads.distance = 2 * opt.beads.radius + opt.beads.spacing;
-	opt.beads.firstPosition = 	opt.nodes.radius + opt.beads.radius + opt.beads.spacing;
+	opt.beads.distance = opt.beads.radius*2
+		+ opt.beads.spacing 
+		+ opt.beads.strokeWidth;
+	opt.beads.firstPosition = 
+		opt.nodes.radius + opt.nodes.strokeWidth/2
+		+ opt.beads.radius + opt.beads.strokeWidth/2
+		+ opt.beads.spacing;
 	opt.beads.showIndex = opt.beads.showIndex === null ? opt.debug : opt.beads.showIndex;
 	
 	return opt;
