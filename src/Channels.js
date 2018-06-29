@@ -1,284 +1,4 @@
-import log from 'loglevel';
-import extend from 'extend';
-import names from 'datasets-unisex-first-names-en';
-
-log.enableAll();
-log.setLevel("TRACE");
-
-const defaultOptions = {
-			
-	colorScheme: d3.scaleOrdinal(d3.schemeCategory20),
-
-	debug: false,
-
-	container: {
-		selector: '#beadnet',
-		backgroundColor: '#FFF'
-	},
-
-	nodes: {
-		radius: 30,
-		color: null,
-		strokeWidth: 3,
-		strokeColor: null,
-
-		/* ['id', 'balance'] */
-		text: 'id'
-	},
-
-	channels: {
-		color: 'gray',
-		colorHighlighted: null,
-
-		/* Number or 'auto' */
-		strokeWidth: 'auto', 
-		strokeColor: null,
-
-		/* show channel balance as text path */
-		showBalance: false
-	},
-
-	beads: {
-		radius: 10,
-		spacing: -0.5,
-		strokeWidth: 2,
-		strokeColor: null,
-
-		showIndex: true
-	}
-};
-
-/** 
- * Merge default option with user given options 
- * To make a parameter required set it to "undefined" in the defaults. 
- */
-function extendDefaultOptions(options) {
-	let opt = {};
-	extend(true, opt, defaultOptions, options);
-	
-	opt.nodes.color = opt.nodes.color || opt.colorScheme(0);
-	opt.nodes.strokeColor = opt.nodes.strokeColor || opt.container.backgroundColor;
-
-	opt.channels.color = opt.channels.color || opt.colorScheme(15);
-	opt.channels.colorHighlighted = opt.channels.colorHighlighted || opt.colorScheme(19);
-
-	opt.beads.color = opt.beads.color || opt.colorScheme(10);
-	opt.beads.strokeColor = opt.beads.strokeColor || opt.container.backgroundColor;
-	opt.beads.animation = opt.beads.animation || d3.easeExp;
-	
-	opt.beads.distance = opt.beads.radius*2
-		+ opt.beads.spacing 
-		+ opt.beads.strokeWidth;
-	opt.beads.firstPosition = 
-		opt.nodes.radius + opt.nodes.strokeWidth/2
-		+ opt.beads.radius + opt.beads.strokeWidth/2
-		+ opt.beads.spacing;
-	opt.beads.showIndex = opt.beads.showIndex === null ? opt.debug : opt.beads.showIndex;
-	
-	return opt;
-}
-
-function getRandomNumber(max) {
-	return Math.floor(Math.random() * max);
-}
-
-function getName() {
-	return names[Math.floor(Math.random()*names.length)];
-}
-
-class Nodes {
-
-    constructor(options) {
-        this._nodes = [];
-
-        this._opt = options.opt;
-        this.simulation = options.simulation;
-        this.nodeContainer = options.nodeContainer;
-    }
-
-	getNodes() {
-		return this._nodes;
-	}
-
-	/**
-	 * Return the node with the given id.
-	 * @param {String} id - the id of the node to find.
-	 * @returns {Node|undefined}
-	 */
-	getNodeById(id) {
-		return this._nodes.find((node) => node.id == id);
-    }
-    
-    /**
-	 * Update DOM elements after this._nodes has been updated.
-	 * This creates the SVG repensentation of a node.
-	 * 
-	 * @private
-	 */
-	update() {
-		const opt = this._opt;
-
-		console.log("update: ", this._nodes);
-
-		this._nodeElements = this.nodeContainer
-			.selectAll(".node")
-			.data(this._nodes, (data) => data.id);
-
-		/* remove deleted nodes */
-		this._nodeElements.exit().transition().duration(1000).style("opacity", 0).remove();
-
-		/* create new nodes */
-		var nodeParent = this._nodeElements.enter().append("g")
-			.attr("class", "node")
-			.attr("id", (data) => data.id)
-			.attr("balance", (data) => data.balance)
-			.style("stroke", opt.nodes.strokeColor)
-			.style("stroke-width", opt.nodes.strokeWidth);
-				
-		nodeParent.append("circle")
-			.attr("class", "node-circle")
-			.attr("fill", (data) => data.color)
-			.attr("r", opt.nodes.radius)
-			.style("cursor", "pointer");
-				
-		nodeParent.append("text")
-			.style("stroke-width", 0.5)
-			.attr("class", "node-text-id")
-			.attr("stroke", opt.container.backgroundColor)
-			.attr("fill", opt.container.backgroundColor)
-			.attr("font-family", "sans-serif")
-			.attr("font-size", "15px")
-			.attr("y", "0px")
-			.attr("text-anchor", "middle")
-			.attr("pointer-events", "none")
-			.text((d) => d.id);
-
-		nodeParent.append("text")
-			.style("stroke-width", 0.5)
-			.attr("class", "node-text-balance")
-			.attr("stroke", opt.container.backgroundColor)
-			.attr("fill", opt.container.backgroundColor)
-			.attr("font-family", "sans-serif")
-			.attr("font-size", "12px")
-			.attr("y", "15px")
-			.attr("text-anchor", "middle")
-			.attr("pointer-events", "none")
-			.text((d) => d.balance);
-
-		nodeParent.call(d3.drag()
-            .on("start", (d) => {
-                d.fx = d.x;
-		        d.fy = d.y;
-            })
-            .on("drag", (d) => {
-                d.fx = d3.event.x; 
-		        d.fy = d3.event.y;
-            })
-            .on("end", (d) => {
-                d.fx = null;
-		        d.fy = null;
-            })
-        );
-
-		/* update existing nodes */
-		this._nodeElements
-			.attr("balance", (d) => d.balance)
-			.selectAll('.node-text-balance')
-				.text((d) => d.balance);
-
-        // TODO:
-		this.simulation
-			.nodes(this._nodes)
-			.alphaTarget(1)
-			.restart();
-
-		this._nodeElements = this.nodeContainer.selectAll(".node");
-
-		return this._nodeElements;
-	}
-
-	/**
-	 * Adds a new node to the network.
-	 * 
-	 * @param {Node} node 
-	 * @returns {BeatNet}
-	 */
-	addNode(node) {
-		node = node || {};
-
-		/* initialize with default values */
-		node.id = node.id || getName();
-        node.balance = node.balance || getRandomNumber(100);
-        node.color = this._opt.colorScheme(this._nodes.length % 20 + 1);
-
-		/* save to nodes array */
-		this._nodes.push(node);
-		this.update();
-
-		/* make this funktion chainable */
-		return this;
-	}
-
-	/**
-	 * Adds multible new nodes to the network.
-	 * 
-	 * @param {Array<Node>} nodes
-	 * @returns {BeatNet}
-	 */
-	addNodes(nodes) {
-		nodes.forEach((node) => this.addNode(node));
-
-		/* make this funktion chainable */
-		return this;
-	}
-
-	/**
-	 * Removes a the node with the given id from the network.
-	 * 
-	 * @param {String} nodeId 
-	 * @returns {BeatNet}
-	 */
-	removeNode(nodeId) {
-		this._nodes = this._nodes.filter((node) => node.id != nodeId);
-	
-		this.update();	
-		
-		/* make this funktion chainable */
-		return this;
-	};
-
-	/**
-	 * Create new nodes with random names.
-	 * @param {Integer} [count=1] - how many nodes.
-	 * @returns {Node}
-	 */
-	createRandomNodes(count) {
-		if ((typeof count !== "undefined" && typeof count !== "number") || count < 0) {
-			throw new TypeError('parameter count must be a positive number');
-		}
-		return Array.from(new Array(count), (x) => {
-			return {
-				id: getName(),
-				balance: getRandomNumber(100)
-			};
-		});
-	}
-
-	/**
-	 * TODO: getRandomNode
-	 * @returns {Node}
-	 */
-	getRandomNode() {
-		return this._nodes[getRandomNumber(this._nodes.length)];
-    }
-    
-    render() {
-        if (this._nodeElements) {
-			this._nodeElements.attr("transform", (data) => `translate(${data.x},${data.y})`);
-		}
-    }
-
-}
+import getRandomNumber from './helpers.js';
 
 class Channels {
 
@@ -314,7 +34,7 @@ class Channels {
 			let index = -1;
 			ch.beads = [];
 			ch.beads.push(...Array.from(new Array(ch.sourceBalance), (x) => {
-				index++;
+				index++
 				return {
 					state: 0,
 					index: index,
@@ -323,7 +43,7 @@ class Channels {
 				}
 			}));
 			ch.beads.push(...Array.from(new Array(ch.targetBalance), (x) => {
-				index++;
+				index++
 				return {
 					state: 1,
 					index: index,
@@ -347,7 +67,7 @@ class Channels {
 
 		/* create new svg elements for new channels */
 		var channelRoots = this._channelElements.enter().append("g")
-			.attr("class", "channel");
+			.attr("class", "channel")
 
 		this._channelElements.merge(channelRoots)
 			.attr("id", (d) => d.id )
@@ -355,7 +75,7 @@ class Channels {
 			.attr("target-balance", (d) => d.targetBalance)
 			.attr("source-id", (d) => d.source.id)
 			.attr("target-id", (d) => d.target.id)
-			.attr("highlighted", (d) => d.hightlighted);
+			.attr("highlighted", (d) => d.hightlighted)
 
 		channelRoots
 			.append("path")
@@ -380,7 +100,7 @@ class Channels {
 						.style("stroke-width", 1)
 						.style("stroke", opt.channels.color)
 						.style("fill", "none")
-						.text((d) => `${d.sourceBalance}:${d.targetBalance}`);
+						.text((d) => `${d.sourceBalance}:${d.targetBalance}`)
 		}
 
 		var beadsContainer = channelRoots.append("g")
@@ -397,12 +117,12 @@ class Channels {
 			.remove();
 
 		let beadElement = this.beadElements.enter().append("g")
-			.attr("class", "bead");
+			.attr("class", "bead")
 
 		this.beadElements.merge(beadElement)
 			.attr("channel-state", (d) => d.state) //TODO: 0 or 1?
 			.attr("id", (d) => d.id )	
-			.attr("index", (d) => d.index);
+			.attr("index", (d) => d.index)
 
 		beadElement.append("circle")
 			.attr("r",  opt.beads.radius)
@@ -447,10 +167,10 @@ class Channels {
 		/***************************************************/
 		/* update channel styles */
 		this._channelElements.selectAll('[highlighted=true] .path')
-			.style("stroke", opt.channels.colorHighlighted);
+			.style("stroke", opt.channels.colorHighlighted)
 
 		this._channelElements.selectAll('[highlighted=false] .path')
-			.style("stroke", opt.channels.color);
+			.style("stroke", opt.channels.color)
 		/************************************************* */
 
 		/* update this._paths; needed in this._ticked */
@@ -459,11 +179,11 @@ class Channels {
 
 		this.simulation
 			.force("link")
-			.links(this._channels);
+			.links(this._channels)
 
 		this.simulation
 			.alphaTarget(0)
-			.restart();
+			.restart()
 
 		return this._channelElements;
 	}
@@ -487,7 +207,8 @@ class Channels {
 	 * TODO: addChannel
 	 * @param {Channel} channel 
 	 */
-	addChannel(channel) {		channel.sourceBalance = channel.sourceBalance || 0;
+	addChannel(channel) {;
+		channel.sourceBalance = channel.sourceBalance || 0;
 		channel.targetBalance = channel.targetBalance || 0;
 		
 		if (!channel.sourceBalance && !channel.targetBalance) {
@@ -559,7 +280,8 @@ class Channels {
 					target = this.nodes.getRandomNode();
 					killCounter++;
 				}
-			}
+			};
+
 			let sourceBalance = getRandomNumber(4);
 			let targetBalance = getRandomNumber(4);
 			sourceBalance = (!sourceBalance && !targetBalance) ?  getRandomNumber(4)+1 : sourceBalance;
@@ -569,7 +291,7 @@ class Channels {
 				target: target.id,
 				sourceBalance: sourceBalance,
 				targetBalance: targetBalance
-			};
+			}
 			channel.id = this._getUniqueChannelId(channel);
 			return channel;
 		});
@@ -645,7 +367,7 @@ class Channels {
 		//TODO: throw error if node not found;
 
 		if (amount > 0) {
-			amount = Math.abs(amount);
+			amount = Math.abs(amount)
 			if (node.balance < amount) {
 				//TODO: throw an error
 				console.error(`node ${sourceId} has not enough balance (${node.balance}) to refund the channel by ${amount}`);
@@ -654,7 +376,7 @@ class Channels {
 			node.balance -= amount;
 			channel.sourceBalance += amount;
 		} else {
-			amount = Math.abs(amount);
+			amount = Math.abs(amount)
 			if (channel.sourceBalance < amount) {
 				//TODO: throw an error
 				console.error(`sourceBalance (${sourceId}) is not enough (${channel.sourceBalance}) to remove an amount of ${amount}`);
@@ -689,7 +411,7 @@ class Channels {
 		//TODO: throw error if node not found;
 
 		if (amount > 0) {
-			amount = Math.abs(amount);
+			amount = Math.abs(amount)
 			if (node.balance < amount) {
 				//TODO: throw an error
 				console.error(`node ${targetId} has not enough balance (${node.balance}) to refund the channel by ${amount}`);
@@ -698,7 +420,7 @@ class Channels {
 			node.balance -= amount;
 			channel.targetBalance += amount;
 		} else {
-			amount = Math.abs(amount);
+			amount = Math.abs(amount)
 			if (channel.targetBalance < amount) {
 				//TODO: throw an error
 				console.error(`targetBalance (${targetId}) is not enough (${channel.targetBalance}) to remove an amount of ${amount}`);
@@ -794,7 +516,7 @@ class Channels {
 	animateBead(bead, direction, delay) {
 		var that = this;
 		direction = !!direction;
-		const select = d3.select(bead);
+		const select = d3.select(bead)
 		return select.transition()
 			.delay(delay)	
 			//.ease(d3.easeLinear)
@@ -823,7 +545,7 @@ class Channels {
 		let channel = channels[0];
 		if (!channel) {
 			//TODO: throw error!?
-			console.error("no channel found!");
+			console.error("no channel found!")
 			return;
 		}
 
@@ -842,7 +564,7 @@ class Channels {
 			channelElement.selectAll('.bead').each(function(d, index) {
 				if (index >= startIndex && index <= endIndex) {
 					const delay = (endIndex-index)*100;
-					transitionCounter++;
+					transitionCounter++
 					that.animateBead(this, d.state, delay).on("end", (ch, a, b) => {
 						sourceBalance--;
 						targetBalance++;
@@ -881,7 +603,7 @@ class Channels {
 			channelElement.selectAll('.bead').each(function(d, index) {
 				if (index >= startIndex && index <= endIndex) {
 					const delay = (index)*100;
-					transitionCounter++;
+					transitionCounter++
 					that.animateBead(this, d.state, delay).on("end", (ch, a, b) => {
 						sourceBalance++;
 						targetBalance--;
@@ -913,227 +635,4 @@ class Channels {
 		return this;
 	}
 }
-
-/**
- * TODO:
- */
-class Beadnet {
-
-	/**
-	 * Create a new BeadNet chart.
-	 * @param {Object} options 
-	 */
-	constructor(options) {
-		this._opt = extendDefaultOptions(options);
-		log.debug("initializing beadnet with options: ", this._opt);
-
-		/* find the parent container DOM element and insert an SVG */
-		this.container = document.querySelector(this._opt.container.selector);
-		this.svg = d3.select(this.container)
-			.append("svg")
-			.attr("class", "beadnet");
-		
-		/* update the size of new newly created SVG element */
-		this.updateSVGSize();
-
-		/* create svg root element called with class "chart" and initial  */
-		this.chart = this.svg.append("g")
-			.attr("class", "chart")
-			.attr("transform", "translate(0,0) scale(1)");
-
-		/* create a SVG-container-element for nodes and channels */
-		let channelContainer = this.chart.append("g").attr("class", "channels");
-		let nodeContainer = this.chart.append("g").attr("class", "nodes");
-	
-		this.beadElements = [];
-
-		this.simulation = this._createSimulation();
-
-		this.nodes = new Nodes({
-			opt: this._opt,
-			nodeContainer,
-			simulation: this.simulation
-		});
-
-		this.channels = new Channels({
-			opt: this._opt,
-			nodes: this.nodes,
-			channelContainer,
-			simulation: this.simulation
-		});
-		
-		this.updateSimulationCenter();
-
-		this.behaviors = this.createBehaviors();
-		this.svg.call(this.behaviors.zoom);
-
-		this.nodes.update();
-		
-		window.addEventListener("resize", this.onResize.bind(this));
-	}
-
-	addNode(node) {
-		return this.nodes.addNode(node)
-	}
-
-	addNodes(nodes) {
-		return this.nodes.addNodes(nodes)
-	}
-
-	removeNode(id) {
-		return this.nodes.removeNode(id);
-		//TODO remove all channels of this node
-	}
-
-	createRandomNodes(amount = 1) {
-		return this.nodes.createRandomNodes(amount);
-	}
-
-	getRandomNode() {
-		return this.nodes.getRandomNode();
-	}
-
-
-	addChannels(channels) {
-		return this.channels.addChannels(channels)
-	}
-
-	getChannelCount() {
-		return this.channels.getChannelCount();
-	}
-
-	getRandomChannel() {
-		return this.channels.getRandomChannel();
-	}
-
-	createRandomChannels(count, unique) {
-		return this.channels.createRandomChannels(count, unique);
-	}
-
-	/**
-	 * @returns {d3.forceSimulation} simulation
-	 * @private
-	 */
-	_createSimulation() {
-		// return d3.forceSimulation()
-		// 	.nodes(this._nodes)
-		// 	.alphaDecay(0.1)
-		// 	//.force("x", d3.forceX().strength(0))
-		// 	//.force("y", d3.forceY().strength(1))
-		// 	.force("charge", d3.forceManyBody().strength(-1000).distanceMin(this.forceDistance).distanceMax(3*this.forceDistance))
-		// 	//.force("collide", d3.forceCollide(this.forceDistance/6))
-		// 	.force("link", d3.forceLink(this._channels).distance(this.forceDistance))
-		// 	.force("center", d3.forceCenter(this.width / 2, this.height / 2))
-		// 	.alphaTarget(0)
-		// 	.on("tick", this._ticked.bind(this));
-
-		return d3.forceSimulation(/*this.nodes.getNodes()*/)
-			.force("charge", d3.forceManyBody().strength(-3000))
-			.force("link", d3.forceLink(/*this._channels*/).strength(0.005).distance(this.forceDistance))
-			.force("x", d3.forceX())
-			.force("y", d3.forceY())
-			.alphaTarget(0)
-			.on("tick", this._ticked.bind(this));
-	}
-
-	/**
-	 * TODO
-	 */
-	updateSVGSize() {
-		this.width = +this.container.clientWidth;
-		this.height = +this.container.clientHeight;
-		this.forceDistance = (this.width + this.height)*.1;
-		this.svg
-			.attr("width", this.width)
-			.attr("height", this.height);
-	}
-
-	/**
-	 * TODO
-	 */
-	onResize() {
-		this.updateSVGSize();
-		this.updateSimulationCenter();
-		this.createBehaviors();
-	}
-	
-	/**
-	 * TODO:
-	 */
-	createBehaviors() {
-		return {
-
-			zoom: d3.zoom()
-				.scaleExtent([0.1, 5, 4])
-				.on('zoom', () => this.chart.attr('transform', d3.event.transform)),
-
-			drag: d3.drag()
-				.on("start", this._onDragStart.bind(this))
-				.on("drag", this._onDragged.bind(this))
-				.on("end", this._onDragendEnd.bind(this))
-		}
-	}
-
-	/**
-	 * TODO:
-	 */
-	updateSimulationCenter() {
-		const centerX = this.svg.attr('width') / 2;
-		const centerY = this.svg.attr('height') / 2;
-		this.simulation
-			.force("center", d3.forceCenter(centerX, centerY))
-			.restart();
-	}
-
-
-
-	/**
-	 * TODO: 
-	 * @private
-	 */
-	_ticked() {
-		this.nodes.render();
-		this.channels.render();
-		this.channels.tickedBeads();
-	}
-
-
-
-	/**
-	 * TODO: 
-	 * @private
-	 */
-	_onDragStart(d) {
-		if (!d3.event.active) {
-			this.simulation
-				.alphaTarget(0.1)
-				.restart();
-		}
-		d.fx = d.x;
-		d.fy = d.y;
-	}
-	
-	/**
-	 * TODO: 
-	 * @private
-	 */
-	_onDragged(d) {
-		d.fx = d3.event.x; 
-		d.fy = d3.event.y;
-	}
-	
-	/**
-	 * TODO: 
-	 * @private
-	 */
-	_onDragendEnd(d) {
-		if (!d3.event.active) { 
-			this.simulation
-				.alphaTarget(0);
-		}
-		d.fx = null;
-		d.fy = null;
-	}
-}
-
-export default Beadnet;
+export default Channels
