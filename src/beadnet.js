@@ -6,7 +6,7 @@ import {
 	InsufficientBalanceError
 } from "./errors.js";
 
-const getRandomNumber = function (max) {
+const getRandomNumber = function(max) {
 	return Math.floor(Math.random() * max);
 };
 
@@ -572,7 +572,7 @@ class Beadnet {
 				while ((
 						source.id === target.id ||
 						(this.getChannels(source.id, target.id).length > 0) &&
-					    killCounter < this._channels.length)) {
+						killCounter < this._channels.length)) {
 					source = this.getRandomNode();
 					target = this.getRandomNode();
 					killCounter++;
@@ -819,7 +819,7 @@ class Beadnet {
 		if (!this.beadElements || this.beadElements.length === 0 || this.beadElements.empty()) {
 			return;
 		}
-		this.beadElements.attr("transform", function (d) {
+		this.beadElements.attr("transform", function(d) {
 			return that._positionBeat(this, d);
 		});
 	}
@@ -840,8 +840,8 @@ class Beadnet {
 			//.ease(d3.easeLinear)
 			.ease(d3.easeQuadInOut)
 			.duration(1000)
-			.attrTween("channel-state", function (a) {
-				return function (t) {
+			.attrTween("channel-state", function(a) {
+				return function(t) {
 					that.tickedBeads();
 					if (direction) {
 						return 1 - t;
@@ -884,7 +884,7 @@ class Beadnet {
 
 			let that = this;
 			let transitionCounter = 0;
-			channelElement.selectAll(".bead").each(function (d, index) {
+			channelElement.selectAll(".bead").each(function(d, index) {
 				if (index >= startIndex && index <= endIndex) {
 					const delay = (endIndex - index) * 100;
 					transitionCounter++;
@@ -923,7 +923,7 @@ class Beadnet {
 
 			let that = this;
 			let transitionCounter = 0;
-			channelElement.selectAll(".bead").each(function (d, index) {
+			channelElement.selectAll(".bead").each(function(d, index) {
 				if (index >= startIndex && index <= endIndex) {
 					const delay = (index) * 100;
 					transitionCounter++;

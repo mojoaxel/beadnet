@@ -54,9 +54,9 @@ const defaultOptions = {
 	presentation: false,
 };
 
-/** 
- * Merge default option with user given options 
- * To make a parameter required set it to "undefined" in the defaults. 
+/**
+ * Merge default option with user given options
+ * To make a parameter required set it to "undefined" in the defaults.
  */
 function extendDefaultOptions(options) {
 	let opt = {};
@@ -89,13 +89,16 @@ const getRandomNumber = function(max) {
 };
 
 /**
- * TODO:
+ * Beadnet draws nodes, channels between nodes and channel balances using d3js.
+ * Channel balances are drawn as beads on a string and can be moved to visualize
+ * funds moving in the Lightning Network.
  */
 class Beadnet {
 
 	/**
 	 * Create a new BeadNet chart.
-	 * @param {Object} options 
+	 *
+	 * @param {Object} options
 	 */
 	constructor(options) {
 		this._opt = extendDefaultOptions(options);
@@ -140,23 +143,27 @@ class Beadnet {
 
 	/**
 	 * Return the node with the given id.
+	 *
 	 * @param {String} id - the id of the node to find.
 	 * @returns {Node|undefined}
 	 */
 	_getNodeById(id) {
-		return this._nodes.find((node) => node.id == id);
+		return this._nodes.find((node) => node.id === id);
 	}
 
 	/**
 	 * Return the channel with the given id.
+	 *
 	 * @param {String} id - the id of the node to find.
 	 * @returns {Channel|undefined}
 	 */
 	_getChannelById(id) {
-		return this._channels.find((ch) => ch.id == id);
+		return this._channels.find((ch) => ch.id === id);
 	}
 
 	/**
+	 * Creates a new simulation.
+	 *
 	 * @returns {d3.forceSimulation} simulation
 	 * @private
 	 */
@@ -183,7 +190,7 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO
+	 * Updates the size of the SVG element to use the full size of it's container.
 	 */
 	updateSVGSize() {
 		this.width = +this.container.clientWidth;
@@ -195,7 +202,7 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO
+	 * Handles a resize event of the window/container.
 	 */
 	onResize() {
 		this.updateSVGSize();
@@ -204,7 +211,7 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO:
+	 * Creates the d3js behaviours for zoom and drag&drop.
 	 */
 	createBehaviors() {
 		return {
@@ -221,7 +228,7 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO:
+	 * Forces the simulation to restart at the center of the SVG area.
 	 */
 	updateSimulationCenter() {
 		const centerX = this.svg.attr("width") / 2;
@@ -234,7 +241,7 @@ class Beadnet {
 	/**
 	 * Update DOM elements after this._nodes has been updated.
 	 * This creates the SVG repensentation of a node.
-	 * 
+	 *
 	 * @private
 	 */
 	_updateNodes() {
@@ -250,7 +257,7 @@ class Beadnet {
 		this._nodeElements.exit().transition().duration(1000).style("opacity", 0).remove();
 
 		/* create new nodes */
-		var nodeParent = this._nodeElements.enter().append("g")
+		let nodeParent = this._nodeElements.enter().append("g")
 			.attr("class", "node")
 			.attr("id", (data) => data.id)
 			.attr("balance", (data) => data.balance)
@@ -308,9 +315,9 @@ class Beadnet {
 
 	/**
 	 * Adds a new node to the network.
-	 * 
-	 * @param {Node} node 
-	 * @returns {BeatNet}
+	 *
+	 * @param {Node} node
+	 * @returns {Beadnet}
 	 */
 	addNode(node) {
 		node = node || {};
@@ -325,43 +332,44 @@ class Beadnet {
 		this._nodes.push(node);
 		this._updateNodes();
 
-		/* make this funktion chainable */
+		/* make this function chainable */
 		return this;
 	}
 
 	/**
 	 * Adds multible new nodes to the network.
-	 * 
+	 *
 	 * @param {Array<Node>} nodes
-	 * @returns {BeatNet}
+	 * @returns {Beadnet}
 	 */
 	addNodes(nodes) {
 		nodes.forEach((node) => this.addNode(node));
 
-		/* make this funktion chainable */
+		/* make this function chainable */
 		return this;
 	}
 
 	/**
 	 * Removes a the node with the given id from the network.
-	 * 
-	 * @param {String} nodeId 
-	 * @returns {BeatNet}
+	 *
+	 * @param {String} nodeId
+	 * @returns {Beadnet}
 	 */
 	removeNode(nodeId) {
-		this._nodes = this._nodes.filter((node) => node.id != nodeId);
-		this._channels = this._channels.filter((channel) => channel.source.id !== nodeId && channel.target.id != nodeId);
+		this._nodes = this._nodes.filter((node) => node.id !== nodeId);
+		this._channels = this._channels.filter((channel) => channel.source.id !== nodeId && channel.target.id !== nodeId);
 
 		this._updateNodes();
 		this._updateChannels();
 
-		/* make this funktion chainable */
+		/* make this function chainable */
 		return this;
 	};
 
 	/**
 	 * Create new nodes with random names.
-	 * @param {Integer} [count=1] - how many nodes.
+	 *
+	 * @param {Number} [count=1] - how many nodes.
 	 * @returns {Node}
 	 */
 	createRandomNodes(count) {
@@ -377,7 +385,8 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO: getRandomNode
+	 * Picks and returns a random node from the list of existing nodes.
+	 *
 	 * @returns {Node}
 	 */
 	getRandomNode() {
@@ -385,7 +394,8 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO:
+	 * Re-draw all channels.
+	 *
 	 * @private
 	 * @returns {d3.selection} this._channelElements
 	 */
@@ -430,7 +440,7 @@ class Beadnet {
 			.remove();
 
 		/* create new svg elements for new channels */
-		var channelRoots = this._channelElements.enter().append("g")
+		let channelRoots = this._channelElements.enter().append("g")
 			.attr("class", "channel");
 
 		this._channelElements.merge(channelRoots)
@@ -445,7 +455,7 @@ class Beadnet {
 			.append("path")
 			.attr("class", "path")
 			.attr("id", (d) => `${d.id}_path`)
-			.style("stroke-width", (d) => opt.channels.strokeWidth == "auto" ? (d.sourceBalance + d.targetBalance) * 2 : opt.channels.strokeWidth)
+			.style("stroke-width", (d) => opt.channels.strokeWidth === "auto" ? (d.sourceBalance + d.targetBalance) * 2 : opt.channels.strokeWidth)
 			.style("stroke", opt.channels.color)
 			.style("fill", "none");
 
@@ -467,7 +477,7 @@ class Beadnet {
 				.text((d) => `${d.sourceBalance}:${d.targetBalance}`);
 		}
 
-		var beadsContainer = channelRoots.append("g")
+		let beadsContainer = channelRoots.append("g")
 			.attr("class", "beads")
 			.attr("id", (d) => "beads_container");
 
@@ -553,14 +563,15 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO:
-	 * @param {*} channelInfos 
+	 * Creates an unique channel ID using the source and target node IDs and the balances.
+	 *
+	 * @param {*} channelInfos
 	 */
 	_getUniqueChannelId(channelInfos) {
 		const channelBalance = (+channelInfos.sourceBalance || 0) + (+channelInfos.targetBalance || 0);
 		let nonce = 0;
 		let id = `channel${channelInfos.source}${channelBalance}${channelInfos.target}${nonce > 0 ? nonce : ""}`;
-		while (this._channels.filter((channel) => channel.id == id).length > 0) {
+		while (this._channels.filter((channel) => channel.id === id).length > 0) {
 			nonce++;
 			id = `channel${channelInfos.source}${channelBalance}${channelInfos.target}${nonce > 0 ? nonce : ""}`;
 		}
@@ -568,10 +579,12 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO: addChannel
-	 * @param {Channel} channel 
+	 * Adds a new channel.
+	 *
+	 * @param {Channel} channel
 	 */
-	addChannel(channel) {		channel.sourceBalance = channel.sourceBalance || 0;
+	addChannel(channel) {
+		channel.sourceBalance = channel.sourceBalance || 0;
 		channel.targetBalance = channel.targetBalance || 0;
 
 		if (!channel.sourceBalance && !channel.targetBalance) {
@@ -609,9 +622,9 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO: 
-	 * @param {*} channels 
-	 * @returns TODO:
+	 * Adds an array of channels.
+	 *
+	 * @param {*} channels
 	 */
 	addChannels(channels) {
 		channels.forEach((channel) => this.addChannel(channel));
@@ -619,21 +632,23 @@ class Beadnet {
 
 	/**
 	 * Create new nodes with random names.
-	 * @param {Integer} [count=1] - how many nodes.
+	 *
+	 * @param {Number} [count=1] - how many nodes.
+	 * @param {Boolean} [unique=true] - should channels be unique?
 	 * @returns {Node}
 	 */
 	createRandomChannels(count, unique = true) {
 		// if ((typeof count !== "undefined" && typeof count !== "number") || count < 0) {
 		// 	throw new TypeError("parameter count must be a positive number");
 		// }
-		let channels = Array.from(new Array(count), (x) => {
+		return Array.from(new Array(count), (x) => {
 			let source = this.getRandomNode();
 			let target = this.getRandomNode();
 
 			if (unique) {
 				let killCounter = 0;
 				while ((
-						source.id == target.id ||
+						source.id === target.id ||
 						(this.getChannels(source.id, target.id).length > 0) &&
 						killCounter < this._channels.length)) {
 					source = this.getRandomNode();
@@ -641,6 +656,7 @@ class Beadnet {
 					killCounter++;
 				}
 			}
+
 			let sourceBalance = getRandomNumber(4);
 			let targetBalance = getRandomNumber(4);
 			sourceBalance = (!sourceBalance && !targetBalance) ? getRandomNumber(4) + 1 : sourceBalance;
@@ -654,18 +670,18 @@ class Beadnet {
 			channel.id = this._getUniqueChannelId(channel);
 			return channel;
 		});
-		return channels;
 	}
 
 	/**
-	 * TODO:
+	 * Picks and returns a random channel from the list of existing channels.
 	 */
 	getRandomChannel() {
 		return this._channels[getRandomNumber(this._channels.length)];
 	}
 
 	/**
-	 * TODO:
+	 * Returns the number of channels.
+	 * @returns {Number} number of channels
 	 */
 	getChannelCount() {
 		return this._channels.length;
@@ -673,11 +689,12 @@ class Beadnet {
 
 	/**
 	 * Remove channel with the given source and target ids.
-	 * @returns {Beatnet} beatnet
+	 *
+	 * @returns {Beadnet} beadnet
 	 */
 	removeChannel(sourceId, targetId) {
 		this._channels = this._channels.filter((channel) => {
-			if ((channel.source.id != sourceId) || (channel.target.id != targetId)) {
+			if ((channel.source.id !== sourceId) || (channel.target.id !== targetId)) {
 				return true;
 			} else {
 				let sourceNode = this._getNodeById(sourceId);
@@ -688,7 +705,6 @@ class Beadnet {
 			}
 		});
 
-
 		console.log("removeChannel: ", this._channels);
 		this._updateNodes();
 		this._updateChannels();
@@ -697,22 +713,26 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO:
-	 * @param {String} sourceId 
-	 * @param {String} targetId 
+	 * Returns all channels that exist between two nodes.
+	 *
+	 * @param {String} sourceId
+	 * @param {String} targetId
+	 * @returns {Channel[]} channels
 	 */
 	getChannels(sourceId, targetId) {
 		return this._channels.filter((channel) =>
-			(channel.source.id == sourceId && channel.target.id == targetId) ||
-			(channel.target.id == sourceId && channel.source.id == targetId)
+			(channel.source.id === sourceId && channel.target.id === targetId) ||
+			(channel.target.id === sourceId && channel.source.id === targetId)
 		);
 	}
 
 	/**
 	 * Transfer a amount from the source node banlance to or from the channel.
+	 *
 	 * @param {String} sourceId - source node id
 	 * @param {String} targetId - target node id
-	 * @param {Integer} amount - positive if moved from not to channel; negative if moved from channel to node.
+	 * @param {Number} amount - positive if moved from not to channel; negative if moved from channel to node.
+	 * @returns {Beadnet} beadnet
 	 */
 	changeChannelSourceBalance(sourceId, targetId, amount) {
 		const channels = this.getChannels(sourceId, targetId);
@@ -754,9 +774,11 @@ class Beadnet {
 
 	/**
 	 * Transfer a amount from the target node banlance to or from the channel.
+	 *
 	 * @param {String} sourceId - source node id
 	 * @param {String} targetId - target node id
-	 * @param {Integer} amount - positive if moved from node to channel; negative if moved from channel to node.
+	 * @param {Number} amount - positive if moved from node to channel; negative if moved from channel to node.
+	 * @returns {Beadnet} beadnet
 	 */
 	changeChannelTargetBalance(sourceId, targetId, amount) {
 		const channels = this.getChannels(sourceId, targetId);
@@ -797,24 +819,28 @@ class Beadnet {
 	}
 
 	/**
-	 * Mark a channel as "hightlighted"
-	 * @param {String} sourceId 
-	 * @param {String} targetId 
+	 * Mark a channel as "highlighted".
+	 *
+	 * @param {String} sourceId
+	 * @param {String} targetId
 	 * @param {Boolean} state - should the channel be highlighted [true]/false
+	 * @returns {Beadnet}
 	 */
 	highlightChannel(sourceId, targetId, state) {
-		var channels = this.getChannels(sourceId, targetId);
+		let channels = this.getChannels(sourceId, targetId);
 		channels.forEach((channel) => channel.hightlighted = state ? state : !channel.hightlighted);
 
 		this._updateChannels();
 
-		/* make this funktion chainable */
+		/* make this function chainable */
 		return this;
 	}
 
 	/**
-	 * TODO:
-	 * @param {*} b 
+	 * Calculate and then translate a bead to a certain position.
+	 *
+	 * @param {*} b
+	 * @returns {string} bead position.
 	 */
 	_positionBeat(b, d) {
 		const bead = d3.select(b);
@@ -830,16 +856,17 @@ class Beadnet {
 		const distanceBetweenBeads = this._opt.beads.distance + this._opt.beads.spacing;
 		const channelPadding = this._opt.beads.firstPosition + this._opt.beads.spacing;
 
-		var startPosition = channelPadding + (index * distanceBetweenBeads);
-		var endPosition = channelPadding + ((balance - 1 - index) * distanceBetweenBeads);
-		var totalDistance = path.getTotalLength() - startPosition - endPosition;
+		let startPosition = channelPadding + (index * distanceBetweenBeads);
+		let endPosition = channelPadding + ((balance - 1 - index) * distanceBetweenBeads);
+		let totalDistance = path.getTotalLength() - startPosition - endPosition;
 
 		const beadPosition = path.getPointAtLength(startPosition + state * totalDistance);
 		return `translate(${beadPosition.x},${beadPosition.y})`;
 	}
 
 	/**
-	 * TODO: 
+	 * Handle an animation tick.
+	 *
 	 * @private
 	 */
 	_ticked() {
@@ -863,10 +890,10 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO:
+	 * Handle bead animation.
 	 */
 	tickedBeads() {
-		var that = this;
+		let that = this;
 		if (!this.beadElements || this.beadElements.length === 0 || this.beadElements.empty()) {
 			return;
 		}
@@ -876,13 +903,14 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO
-	 * @param {*} bead 
-	 * @param {*} direction 
-	 * @param {*} delay 
+	 * Animates a bead movement.
+	 *
+	 * @param {*} bead
+	 * @param {*} direction
+	 * @param {*} delay
 	 */
 	animateBead(bead, direction, delay) {
-		var that = this;
+		let that = this;
 		direction = !!direction;
 		const select = d3.select(bead);
 		return select.transition()
@@ -903,11 +931,14 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO:
-	 * @param {*} sourceId 
-	 * @param {*} targetId 
-	 * @param {*} beadCount 
-	 * @param {*} callback 
+	 * Moves a certain amount of beads from source to target node. If a callback is provided, it is called after the animation
+	 * has stopped.
+	 *
+	 * @param {*} sourceId
+	 * @param {*} targetId
+	 * @param {*} beadCount
+	 * @param {*} callback
+	 * @returns {Beadnet} beadnet
 	 */
 	moveBeads(sourceId, targetId, beadCount, callback) {
 		const channels = this.getChannels(sourceId, targetId);
@@ -922,15 +953,15 @@ class Beadnet {
 		// TODO: get channel with source and target
 		const channelElement = d3.select(`#${channel.id}`);
 
-		if (channel.source.id == sourceId) {
+		if (channel.source.id === sourceId) {
 
 			let sourceBalance = channel.sourceBalance;
 			let targetBalance = channel.targetBalance;
-			var startIndex = sourceBalance - beadCount;
-			var endIndex = startIndex + beadCount - 1;
+			let startIndex = sourceBalance - beadCount;
+			let endIndex = startIndex + beadCount - 1;
 
-			var that = this;
-			var transitionCounter = 0;
+			let that = this;
+			let transitionCounter = 0;
 			channelElement.selectAll(".bead").each(function(d, index) {
 				if (index >= startIndex && index <= endIndex) {
 					const delay = (endIndex - index) * 100;
@@ -965,11 +996,11 @@ class Beadnet {
 
 			let sourceBalance = channel.sourceBalance;
 			let targetBalance = channel.targetBalance;
-			var startIndex = (sourceBalance + targetBalance) - targetBalance;
-			var endIndex = startIndex + beadCount - 1;
+			let startIndex = (sourceBalance + targetBalance) - targetBalance;
+			let endIndex = startIndex + beadCount - 1;
 
-			var that = this;
-			var transitionCounter = 0;
+			let that = this;
+			let transitionCounter = 0;
 			channelElement.selectAll(".bead").each(function(d, index) {
 				if (index >= startIndex && index <= endIndex) {
 					const delay = (index) * 100;
@@ -1006,7 +1037,8 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO: 
+	 * Handles the start of mouse drag event.
+	 *
 	 * @private
 	 */
 	_onDragStart(d) {
@@ -1020,7 +1052,8 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO: 
+	 * Handles the mouse drag event.
+	 *
 	 * @private
 	 */
 	_onDragged(d) {
@@ -1029,7 +1062,8 @@ class Beadnet {
 	}
 
 	/**
-	 * TODO: 
+	 * Handles the end of mouse drag event.
+	 *
 	 * @private
 	 */
 	_onDragendEnd(d) {
@@ -1043,6 +1077,7 @@ class Beadnet {
 
 	/**
 	 * Initialize presentation mode, check if the provided steps are valid.
+	 *
 	 * @private
 	 */
 	_initializePresentation() {
