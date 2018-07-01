@@ -40,7 +40,9 @@ const defaultOptions = {
 		strokeColor: null,
 
 		showIndex: true
-	}
+	},
+
+	presentation: false,
 };
 
 /** 

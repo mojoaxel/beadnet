@@ -50,7 +50,11 @@ class Beadnet {
 		this.svg.call(this.behaviors.zoom);
 
 		this._updateNodes();
-		
+
+		if (this._opt.presentation) {
+			this._initializePresentation();
+		}
+
 		window.addEventListener("resize", this.onResize.bind(this));
 	}
 
@@ -956,6 +960,55 @@ class Beadnet {
 		}
 		d.fx = null;
 		d.fy = null;
+	}
+
+	/**
+	 * Initialize presentation mode, check if the provided steps are valid.
+	 * @private
+	 */
+	_initializePresentation() {
+		if (this._opt.presentation && this._opt.presentation.steps && this._opt.presentation.steps.length > 0) {
+			this.presentation = {
+				currentState: 0,
+				steps: this._opt.presentation.steps,
+			};
+			this.presentation.steps.forEach(step => {
+				step.forEach(subStep => {
+					let fnMapping = COMMAND_MAPPING[subStep.cmd];
+					if (fnMapping) {
+						if (!subStep.args || subStep.args.length === 0 || subStep.args.length !== fnMapping.numArgs) {
+							console.error('the command ' + subStep.cmd + ' requires exactly ' + fnMapping.numArgs + ' arguments!')
+						}
+					} else {
+						console.error('invalid command ' + subStep.cmd + '!');
+					}
+				})
+			});
+		} else {
+			console.error('presentation must be an object that contains one or more steps');
+		}
+	}
+
+	/**
+	 * Show the next step of the presentation. Only has an effect if the instance was initialized in presentation mode.
+	 */
+	nextStep() {
+		if (!this.presentation) {
+			console.log('not in presentation mode! please pass a presentation object when creating the beadnet.');
+			return;
+		}
+		if (this.presentation.currentState >= this.presentation.steps.length) {
+			console.log('presentation reached its end. please restart it.');
+			return;
+		}
+		let script = this.presentation.steps[this.presentation.currentState];
+		let bn = this;
+		script.forEach(subStep => {
+			let fnMapping = COMMAND_MAPPING[subStep.cmd];
+			let fn = bn[fnMapping.fnName];
+			fn.apply(bn, subStep.args);
+		});
+		this.presentation.currentState++;
 	}
 }
 
