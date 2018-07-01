@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html>
 <head>
 <meta charset="utf-8">
 <style>
@@ -12,7 +13,7 @@ body, html {
 	position: absolute;
 	top: 0;
 	left: 0;
-	bottom: 0%;
+	bottom: 0;
 	right: 0;
 }
 </style>
@@ -49,7 +50,7 @@ window.onload = function () {
 		balance: 10
 	}]);
 
-	
+
 
 	function doAnimation() {
 		let x = 1;
@@ -61,7 +62,7 @@ window.onload = function () {
 			sourceBalance: 5,
 			targetBalance: 0
 		});
-		
+
 		setTimeout(() => {
 			bn.addChannel({
 				source: "B",
@@ -83,7 +84,7 @@ window.onload = function () {
 		setTimeout(() => {
 			bn.removeChannel("A", "B");
 		}, delay * x++ );
-		
+
 		setTimeout(() => {
 			bn.removeChannel("B", "Hub");
 		}, delay * x++ );

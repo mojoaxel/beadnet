@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html>
 <head>
 <meta charset="utf-8">
 <style>
@@ -13,7 +14,7 @@ body, html {
     position: absolute;
     top: 0;
     left: 0;
-    bottom: 0%;
+    bottom: 0;
     right: 25%;
 }
 #controls {
@@ -151,7 +152,7 @@ window.onload = function () {
         console.log(`bn.removeChannel(${JSON.stringify(source)}, ${JSON.stringify(target)})`);
         bn.removeChannel(source, target);
     });
-    
+
     var btnChangeSourceBalance = document.querySelector('button#changeSourceBalance');
     btnChangeSourceBalance.addEventListener('click', function() {
         const source = document.querySelector('#change-channel #source-id').value;

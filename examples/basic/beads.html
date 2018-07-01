@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html>
 <head>
 <meta charset="utf-8">
 <style>
@@ -12,7 +13,7 @@ body, html {
 	position: absolute;
 	top: 0;
 	left: 0;
-	bottom: 0%;
+	bottom: 0;
 	right: 0;
 }
 </style>
@@ -106,14 +107,14 @@ window.onload = function () {
 			//bn.highlightChannel("A", "Hub1", false);
 			bn.moveBeads("Hub1", "Hub2", count, () => {
 				bn.moveBeads("Hub2", "B", count, () => {
-					
+
 					bn.moveBeads("B", "Hub2", count, () => {
 						bn.moveBeads("Hub2", "Hub1", count, () => {
 							bn.moveBeads("Hub1", "A", count, () => {
 								doAnimation();
 							});
-						}); 	
-					}); 
+						});
+					});
 				});
 			});
 		});
