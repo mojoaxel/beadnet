@@ -10,6 +10,19 @@ const getRandomNumber = function(max) {
 	return Math.floor(Math.random() * max);
 }
 
+const COMMAND_MAPPING = {
+	ADD_NODE: { fnName: "addNode", numArgs: 1 },
+	ADD_NODES: { fnName: "addNodes", numArgs: 1 },
+	REMOVE_NODE: { fnName: "removeNode", numArgs: 1 },
+	ADD_CHANNEL: { fnName: "addChannel", numArgs: 1 },
+	ADD_CHANNELS: { fnName: "addChannels", numArgs: 1 },
+	REMOVE_CHANNEL: { fnName: "removeChannel", numArgs: 2 },
+	CHANGE_CHANNEL_SOURCE_BALANCE: { fnName: "changeChannelSourceBalance", numArgs: 3 },
+	CHANGE_CHANNEL_TARGET_BALANCE: { fnName: "changeChannelTargetBalance", numArgs: 3 },
+	HIGHLIGHT_CHANNEL: { fnName: "highlightChannel", numArgs: 3 },
+	MOVE_BEADS: { fnName: "moveBeads", numArgs: 4 },
+};
+
 /**
  * TODO:
  */
