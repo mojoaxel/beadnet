@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html>
 <head>
   <meta charset="utf-8">
   <style>
@@ -38,7 +39,7 @@ var points = [
   [600, 100]
 ];
 
-var paths = [], 
+var paths = [],
     beads = [];
 
 var colors = d3.scaleOrdinal(d3.schemeCategory10);
@@ -59,20 +60,20 @@ const ANIMATIN_DURATION = 1000;
 const ANIMATIN_DELAY = ANIMATIN_DURATION*0.1;
 
 const SPACING = 2*BEAD_RADIUS+BEAD_SPACING;
-const FIRST_POSITION = NODE_RADIUS+BEAD_RADIUS+BEAD_SPACING; 
+const FIRST_POSITION = NODE_RADIUS+BEAD_RADIUS+BEAD_SPACING;
 
 function createPath(points) {
   return svg.append("path")
-    
+
     /* move to the background of the nodes.
       This prevents the nodes to be covered by the lines of the channels */
-    .each(function() { 
-        var firstChild = this.parentNode.firstChild; 
-        if (firstChild) { 
-            this.parentNode.insertBefore(this, firstChild); 
-        } 
+    .each(function() {
+        var firstChild = this.parentNode.firstChild;
+        if (firstChild) {
+            this.parentNode.insertBefore(this, firstChild);
+        }
     })
-    
+
     /* create path consisting of points */
     .data([points])
 
@@ -102,7 +103,7 @@ function moveBeads(path, beads, count, callback) {
   var beadsCount = beads.length;
   for (var i=beadsCount-1; i>=(beadsCount-count); i--) {
     transition(path, beads, i)
-    
+
     /* simulate an "endAll" event my counting the transitions starts and ends. */
     .on( "start", function() {
       transitionsCount++;
@@ -189,7 +190,7 @@ async.series([
   (c) => moveBeads(paths[1], beads[1], 2, c),
   (c) => moveBeads(paths[2], beads[2], 2, c)
 ]);
-	
+
 </script>
 </body>
 </html>
