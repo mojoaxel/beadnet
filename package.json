@@ -1,6 +1,6 @@
 {
   "name": "beadnet",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A visualisation library for peer-to-peer payment channel networks.",
   "module": "dist/beadnet.esm.js",
   "browser": "dist/beadnet.standalone.min.js",
