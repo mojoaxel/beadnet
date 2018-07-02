@@ -9,7 +9,9 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "pretest": "npm run build",
-    "beautify": "glob-run js-beautify --replace ./src/**/*.js",
+    "beautify-js": "glob-run js-beautify --replace ./src/**/*.js",
+    "beautify-html": "glob-run js-beautify --replace ./examples/**/*.html",
+    "beautify": "npm run beautify-js && npm run beautify-html",
     "docs": "jsdoc -c .jsdocs.json src --recurse --destination docs",
     "index": "markdown README.md -f gfm -t BeadNet -s ./docs/styles/jsdoc-default.css > index.html",
     "dist": "npm run beautify && npm run build && npm run docs && npm run index"

@@ -1,193 +1,201 @@
 <!DOCTYPE html>
+
 <head>
-<meta charset="utf-8">
-<style>
-body, html {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-}
-#beadnet {
-    border: 3px solid gray;
-    box-sizing: border-box;
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0%;
-    right: 25%;
-}
-#controls {
-    position: absolute;
-    background-color: lightgray;
-    top: 0;
-    left: 75%;
-    bottom: 0;
-    right: 0;
-    padding: 1em;
-}
-</style>
+	<meta charset="utf-8">
+	<style>
+		body,
+		html {
+			width: 100%;
+			height: 100%;
+			margin: 0;
+		}
+
+		#beadnet {
+			border: 3px solid gray;
+			box-sizing: border-box;
+			position: absolute;
+			top: 0;
+			left: 0;
+			bottom: 0%;
+			right: 25%;
+		}
+
+		#controls {
+			position: absolute;
+			background-color: lightgray;
+			top: 0;
+			left: 75%;
+			bottom: 0;
+			right: 0;
+			padding: 1em;
+		}
+	</style>
 </head>
+
 <body>
-<div id="beadnet"></div>
-<div id="controls">
-    <fieldset id="add-node">
-        <legend>add node</legend>
-        <input type="text" id="node-id" value="" placeholder="node ID"/>
-        <input type="number" id="balance" value="" placeholder="balance"/>
-        <br>
-        <button id="addNode">Add Node</button>
-        <button id="removeNode">Remove Node</button>
-    </fieldset>
-    <fieldset id="add-channel">
-        <legend>add channel</legend>
-        <input type="text" id="source-id" value="A" placeholder="source ID"/>
-        <input type="text" id="target-id" value="B" placeholder="target ID"/>
-        <br>
-        <input type="number" id="source-balance" value="2" placeholder="source balance"/>
-        <input type="number" id="target-balance" value="2" placeholder="target balance"/>
-        <br>
-        <button id="addChannel">Add Channel</button>
-        <button id="removeChannel">Remove Channel</button>
-    </fieldset>
-    <fieldset id="change-channel">
-        <legend>change channel balance</legend>
-        <input type="text" id="source-id" value="A" placeholder="source ID"/>
-        <input type="text" id="target-id" value="B" placeholder="target ID"/>
-        <br>
-        <input type="number" id="amount" value="1" placeholder="amount to change"/>
-        <br>
-        <button id="changeSourceBalance">change Source Balance</button>
-        <button id="changeTargetBalance">change Target Balance</button>
-    </fieldset>
-    <fieldset id="highight-channel">
-        <legend>highlight channel</legend>
-        <input type="text" id="source-id" value="" placeholder="source ID"/>
-        <input type="text" id="target-id" value="" placeholder="target ID"/>
-        <br>
-        <button id="highightChannel">Highlight</button>
-    </fieldset>
-	<fieldset id="move-beads">
-        <legend>move beads</legend>
-        <input type="text" id="source-id" value="" placeholder="source ID"/>
-        <input type="text" id="target-id" value="" placeholder="target ID"/>
-        <br>
-        <input type="number" id="amount" value="" placeholder="amount"/>
-        <br>
-        <button id="moveBeads">Move Beads</button>
-    </fieldset>
-    <fieldset id="export" disabled>
-        <legend>export</legend>
-        <button id="exportSvg">Export SVG</button>
-        <button id="exportGif">Export animated SVG</button>
-    </fieldset>
-</div>
+	<div id="beadnet"></div>
+	<div id="controls">
+		<fieldset id="add-node">
+			<legend>add node</legend>
+			<input type="text" id="node-id" value="" placeholder="node ID" />
+			<input type="number" id="balance" value="" placeholder="balance" />
+			<br>
+			<button id="addNode">Add Node</button>
+			<button id="removeNode">Remove Node</button>
+		</fieldset>
+		<fieldset id="add-channel">
+			<legend>add channel</legend>
+			<input type="text" id="source-id" value="A" placeholder="source ID" />
+			<input type="text" id="target-id" value="B" placeholder="target ID" />
+			<br>
+			<input type="number" id="source-balance" value="2" placeholder="source balance" />
+			<input type="number" id="target-balance" value="2" placeholder="target balance" />
+			<br>
+			<button id="addChannel">Add Channel</button>
+			<button id="removeChannel">Remove Channel</button>
+		</fieldset>
+		<fieldset id="change-channel">
+			<legend>change channel balance</legend>
+			<input type="text" id="source-id" value="A" placeholder="source ID" />
+			<input type="text" id="target-id" value="B" placeholder="target ID" />
+			<br>
+			<input type="number" id="amount" value="1" placeholder="amount to change" />
+			<br>
+			<button id="changeSourceBalance">change Source Balance</button>
+			<button id="changeTargetBalance">change Target Balance</button>
+		</fieldset>
+		<fieldset id="highight-channel">
+			<legend>highlight channel</legend>
+			<input type="text" id="source-id" value="" placeholder="source ID" />
+			<input type="text" id="target-id" value="" placeholder="target ID" />
+			<br>
+			<button id="highightChannel">Highlight</button>
+		</fieldset>
+		<fieldset id="move-beads">
+			<legend>move beads</legend>
+			<input type="text" id="source-id" value="" placeholder="source ID" />
+			<input type="text" id="target-id" value="" placeholder="target ID" />
+			<br>
+			<input type="number" id="amount" value="" placeholder="amount" />
+			<br>
+			<button id="moveBeads">Move Beads</button>
+		</fieldset>
+		<fieldset id="export" disabled>
+			<legend>export</legend>
+			<button id="exportSvg">Export SVG</button>
+			<button id="exportGif">Export animated SVG</button>
+		</fieldset>
+	</div>
 
-<script src="../../node_modules/d3/dist/d3.js"></script>
-<script>window.d3 || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min.js">\x3C/script>')</script>
+	<script src="../../node_modules/d3/dist/d3.js"></script>
+	<script>
+		window.d3 || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min.js">\x3C/script>')
+	</script>
 
-<script src="../../dist/beadnet.standalone.min.js"></script>
-<script>
-window.onload = function () {
+	<script src="../../dist/beadnet.standalone.min.js"></script>
+	<script>
+		window.onload = function() {
 
-    var colors = d3.scaleOrdinal(d3.schemeCategory10);
+			var colors = d3.scaleOrdinal(d3.schemeCategory10);
 
-    // initialize BeadNet
-    window.bn = new beadnet({
-        colorScheme: colors,
-        // nodes: {
-        //     text: 'balance'
-        // }
-    });
+			// initialize BeadNet
+			window.bn = new beadnet({
+				colorScheme: colors,
+				// nodes: {
+				//     text: 'balance'
+				// }
+			});
 
-    bn.addNodes([{
-        id: "A",
-        balance: 50
-    }, {
-        id: "B",
-        balance: 50
-    }]);
+			bn.addNodes([{
+				id: "A",
+				balance: 50
+			}, {
+				id: "B",
+				balance: 50
+			}]);
 
-    var btnAddNode = document.querySelector('button#addNode');
-    btnAddNode.addEventListener('click', function() {
-        var node = bn.createRandomNodes(1)[0];
-        var nodeId = document.querySelector('#add-node #node-id').value;
-        var balance = +document.querySelector('#add-node #balance').value;
-        if (nodeId) node.id = nodeId;
-        if (balance >= 0) node.balance = balance;
-        console.log(`bn.addNode(${JSON.stringify(node)})`);
-        bn.addNode(node);
-    });
+			var btnAddNode = document.querySelector('button#addNode');
+			btnAddNode.addEventListener('click', function() {
+				var node = bn.createRandomNodes(1)[0];
+				var nodeId = document.querySelector('#add-node #node-id').value;
+				var balance = +document.querySelector('#add-node #balance').value;
+				if (nodeId) node.id = nodeId;
+				if (balance >= 0) node.balance = balance;
+				console.log(`bn.addNode(${JSON.stringify(node)})`);
+				bn.addNode(node);
+			});
 
-    var btnRemoveNode = document.querySelector('button#removeNode');
-    btnRemoveNode.addEventListener('click', function() {
-        var nodeId = document.querySelector('#add-node #node-id').value;
-        if (nodeId) {
-            console.log(`bn.removeNode(${JSON.stringify(nodeId)})`);
-            bn.removeNode(nodeId);
-        }
-    });
+			var btnRemoveNode = document.querySelector('button#removeNode');
+			btnRemoveNode.addEventListener('click', function() {
+				var nodeId = document.querySelector('#add-node #node-id').value;
+				if (nodeId) {
+					console.log(`bn.removeNode(${JSON.stringify(nodeId)})`);
+					bn.removeNode(nodeId);
+				}
+			});
 
-    var btnAddChannel = document.querySelector('button#addChannel');
-    btnAddChannel.addEventListener('click', function() {
-        var channel = bn.createRandomChannels(1)[0];
-        const sourceId = document.querySelector('#add-channel #source-id').value;
-        const targetId = document.querySelector('#add-channel #target-id').value;
-        const sourceBalance = document.querySelector('#add-channel #source-balance').value;
-        const targetBalance = document.querySelector('#add-channel #target-balance').value;
+			var btnAddChannel = document.querySelector('button#addChannel');
+			btnAddChannel.addEventListener('click', function() {
+				var channel = bn.createRandomChannels(1)[0];
+				const sourceId = document.querySelector('#add-channel #source-id').value;
+				const targetId = document.querySelector('#add-channel #target-id').value;
+				const sourceBalance = document.querySelector('#add-channel #source-balance').value;
+				const targetBalance = document.querySelector('#add-channel #target-balance').value;
 
-        channel.source = sourceId || channel.source;
-        channel.target = targetId || channel.target;
-        channel.sourceBalance = sourceBalance !== '' ? +sourceBalance : channel.sourceBalance;
-        channel.targetBalance = targetBalance !== '' ? +targetBalance : channel.targetBalance;
+				channel.source = sourceId || channel.source;
+				channel.target = targetId || channel.target;
+				channel.sourceBalance = sourceBalance !== '' ? +sourceBalance : channel.sourceBalance;
+				channel.targetBalance = targetBalance !== '' ? +targetBalance : channel.targetBalance;
 
-        console.log(`bn.addChannel(${JSON.stringify(channel)})`);
-        bn.addChannel(channel);
-    });
+				console.log(`bn.addChannel(${JSON.stringify(channel)})`);
+				bn.addChannel(channel);
+			});
 
-    var btnRemoveChannel = document.querySelector('button#removeChannel');
-    btnRemoveChannel.addEventListener('click', function() {
-        const source = document.querySelector('#add-channel #source-id').value;
-        const target = document.querySelector('#add-channel #target-id').value;
-        console.log(`bn.removeChannel(${JSON.stringify(source)}, ${JSON.stringify(target)})`);
-        bn.removeChannel(source, target);
-    });
-    
-    var btnChangeSourceBalance = document.querySelector('button#changeSourceBalance');
-    btnChangeSourceBalance.addEventListener('click', function() {
-        const source = document.querySelector('#change-channel #source-id').value;
-        const target = document.querySelector('#change-channel #target-id').value;
-        const amount = +document.querySelector('#change-channel #amount').value;
-        console.log(`bn.changeChannelSourceBalance(${JSON.stringify(source)}, ${JSON.stringify(target)}, ${JSON.stringify(amount)})`);
-        bn.changeChannelSourceBalance(source, target, amount);
-    });
+			var btnRemoveChannel = document.querySelector('button#removeChannel');
+			btnRemoveChannel.addEventListener('click', function() {
+				const source = document.querySelector('#add-channel #source-id').value;
+				const target = document.querySelector('#add-channel #target-id').value;
+				console.log(`bn.removeChannel(${JSON.stringify(source)}, ${JSON.stringify(target)})`);
+				bn.removeChannel(source, target);
+			});
 
-    var btnChangeTargetBalance = document.querySelector('button#changeTargetBalance');
-    btnChangeTargetBalance.addEventListener('click', function() {
-        const source = document.querySelector('#change-channel #source-id').value;
-        const target = document.querySelector('#change-channel #target-id').value;
-        const amount = +document.querySelector('#change-channel #amount').value;
-        console.log(`bn.changeChannelTargetBalance(${JSON.stringify(source)}, ${JSON.stringify(target)}, ${JSON.stringify(amount)})`);
-        bn.changeChannelTargetBalance(source, target, amount);
-    });
+			var btnChangeSourceBalance = document.querySelector('button#changeSourceBalance');
+			btnChangeSourceBalance.addEventListener('click', function() {
+				const source = document.querySelector('#change-channel #source-id').value;
+				const target = document.querySelector('#change-channel #target-id').value;
+				const amount = +document.querySelector('#change-channel #amount').value;
+				console.log(`bn.changeChannelSourceBalance(${JSON.stringify(source)}, ${JSON.stringify(target)}, ${JSON.stringify(amount)})`);
+				bn.changeChannelSourceBalance(source, target, amount);
+			});
 
-    var btnHighightChannel = document.querySelector('button#highightChannel');
-    btnHighightChannel.addEventListener('click', function() {
-        const source = document.querySelector('#move-beads #source-id').value;
-        const target = document.querySelector('#move-beads #target-id').value;
-        console.log(`bn.highlightChannel(${JSON.stringify(source)}, ${JSON.stringify(target)})`);
-        bn.highlightChannel(source, target);
-    });
+			var btnChangeTargetBalance = document.querySelector('button#changeTargetBalance');
+			btnChangeTargetBalance.addEventListener('click', function() {
+				const source = document.querySelector('#change-channel #source-id').value;
+				const target = document.querySelector('#change-channel #target-id').value;
+				const amount = +document.querySelector('#change-channel #amount').value;
+				console.log(`bn.changeChannelTargetBalance(${JSON.stringify(source)}, ${JSON.stringify(target)}, ${JSON.stringify(amount)})`);
+				bn.changeChannelTargetBalance(source, target, amount);
+			});
 
-    var btnMoveBeads = document.querySelector('button#moveBeads');
-    btnMoveBeads.addEventListener('click', function() {
-        const source = document.querySelector('#move-beads #source-id').value;
-        const target = document.querySelector('#move-beads #target-id').value;
-        const amount = +document.querySelector('#move-beads #amount').value;
-        console.log(`bn.moveBeads(${JSON.stringify(source)}, ${JSON.stringify(target)}, ${JSON.stringify(amount)})`);
-        bn.moveBeads(source, target, amount);
-    });
+			var btnHighightChannel = document.querySelector('button#highightChannel');
+			btnHighightChannel.addEventListener('click', function() {
+				const source = document.querySelector('#move-beads #source-id').value;
+				const target = document.querySelector('#move-beads #target-id').value;
+				console.log(`bn.highlightChannel(${JSON.stringify(source)}, ${JSON.stringify(target)})`);
+				bn.highlightChannel(source, target);
+			});
 
-};
-</script>
+			var btnMoveBeads = document.querySelector('button#moveBeads');
+			btnMoveBeads.addEventListener('click', function() {
+				const source = document.querySelector('#move-beads #source-id').value;
+				const target = document.querySelector('#move-beads #target-id').value;
+				const amount = +document.querySelector('#move-beads #amount').value;
+				console.log(`bn.moveBeads(${JSON.stringify(source)}, ${JSON.stringify(target)}, ${JSON.stringify(amount)})`);
+				bn.moveBeads(source, target, amount);
+			});
+
+		};
+	</script>
 </body>
+
 </html>
