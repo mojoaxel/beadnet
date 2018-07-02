@@ -1,7 +1,7 @@
 import extend from "extend";
 
 const defaultOptions = {
-			
+
 	colorScheme: d3.scaleOrdinal(d3.schemeCategory20),
 
 	debug: false,
@@ -26,7 +26,7 @@ const defaultOptions = {
 		colorHighlighted: null,
 
 		/* Number or "auto" */
-		strokeWidth: "auto", 
+		strokeWidth: "auto",
 		strokeColor: null,
 
 		/* show channel balance as text path */
@@ -52,7 +52,7 @@ const defaultOptions = {
 function extendDefaultOptions(options) {
 	let opt = {};
 	extend(true, opt, defaultOptions, options);
-	
+
 	opt.nodes.color = opt.nodes.color || opt.colorScheme(0);
 	opt.nodes.strokeColor = opt.nodes.strokeColor || opt.container.backgroundColor;
 
@@ -62,16 +62,16 @@ function extendDefaultOptions(options) {
 	opt.beads.color = opt.beads.color || opt.colorScheme(10);
 	opt.beads.strokeColor = opt.beads.strokeColor || opt.container.backgroundColor;
 	opt.beads.animation = opt.beads.animation || d3.easeExp;
-	
-	opt.beads.distance = opt.beads.radius*2
-		+ opt.beads.spacing 
-		+ opt.beads.strokeWidth;
-	opt.beads.firstPosition = 
-		opt.nodes.radius + opt.nodes.strokeWidth/2
-		+ opt.beads.radius + opt.beads.strokeWidth/2
-		+ opt.beads.spacing;
+
+	opt.beads.distance = opt.beads.radius * 2 +
+		opt.beads.spacing +
+		opt.beads.strokeWidth;
+	opt.beads.firstPosition =
+		opt.nodes.radius + opt.nodes.strokeWidth / 2 +
+		opt.beads.radius + opt.beads.strokeWidth / 2 +
+		opt.beads.spacing;
 	opt.beads.showIndex = opt.beads.showIndex === null ? opt.debug : opt.beads.showIndex;
-	
+
 	return opt;
 }
 
