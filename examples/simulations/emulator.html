@@ -20,6 +20,10 @@
       right: 25%;
     }
 
+    fieldset[disabled] {
+      opacity: 0.5;
+    }
+
     #controls {
       position: absolute;
       background-color: lightgray;
@@ -64,7 +68,7 @@
       <button id="changeSourceBalance">change Source Balance</button>
       <button id="changeTargetBalance">change Target Balance</button>
     </fieldset>
-    <fieldset id="highight-channel">
+    <fieldset id="highight-channel" disabled>
       <legend>highlight channel</legend>
       <input type="text" id="source-id" value="" placeholder="source ID" />
       <input type="text" id="target-id" value="" placeholder="target ID" />
