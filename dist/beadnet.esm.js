@@ -191,7 +191,7 @@ class Beadnet {
 	 * @returns {Node|undefined}
 	 */
 	_getNodeById(id) {
-		return this._nodes.find((node) => node.id === id);
+		return this._nodes.find((node) => node.id == id);
 	}
 
 	/**
@@ -201,7 +201,7 @@ class Beadnet {
 	 * @returns {Channel|undefined}
 	 */
 	_getChannelById(id) {
-		return this._channels.find((ch) => ch.id === id);
+		return this._channels.find((ch) => ch.id == id);
 	}
 
 	/**
