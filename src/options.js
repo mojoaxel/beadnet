@@ -7,8 +7,8 @@ const defaultOptions = {
 	debug: false,
 
 	container: {
-		selector: '#beadnet',
-		backgroundColor: '#FFF'
+		selector: "#beadnet",
+		backgroundColor: "#FFF"
 	},
 
 	nodes: {
@@ -17,16 +17,16 @@ const defaultOptions = {
 		strokeWidth: 3,
 		strokeColor: null,
 
-		/* ['id', 'balance'] */
-		text: 'id'
+		/* ["id", "balance"] */
+		text: "id"
 	},
 
 	channels: {
-		color: 'gray',
+		color: "gray",
 		colorHighlighted: null,
 
-		/* Number or 'auto' */
-		strokeWidth: 'auto', 
+		/* Number or "auto" */
+		strokeWidth: "auto", 
 		strokeColor: null,
 
 		/* show channel balance as text path */
