@@ -45,9 +45,9 @@ const defaultOptions = {
 	presentation: false,
 };
 
-/** 
- * Merge default option with user given options 
- * To make a parameter required set it to "undefined" in the defaults. 
+/**
+ * Merge default option with user given options
+ * To make a parameter required set it to "undefined" in the defaults.
  */
 function extendDefaultOptions(options) {
 	let opt = {};

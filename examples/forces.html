@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+<html>
+<head>
 <meta charset="utf-8">
 
 <style>
@@ -17,7 +19,8 @@ body, html {
 	right: 0;
 }
 </style>
-
+</head>
+<body>
 <div id="chartContainer"></div>
 
 
@@ -45,7 +48,7 @@ const ANIMATIN_DURATION = 1000;
 const ANIMATIN_DELAY = ANIMATIN_DURATION*0.1;
 
 const SPACING = 2*BEAD_RADIUS+BEAD_SPACING;
-const FIRST_POSITION = NODE_RADIUS+BEAD_RADIUS+BEAD_SPACING; 
+const FIRST_POSITION = NODE_RADIUS+BEAD_RADIUS+BEAD_SPACING;
 
 const attr = {
 	beadAnimation: {
@@ -108,33 +111,33 @@ var nodes = [{
 	id: "Hub1",
 	color: colors(4),
 	balance: 10
-}, { 
+}, {
 	id: "Hub2",
 	color: colors(5),
 	balance: 20
-}, { 
+}, {
 	id: "Bob",
 	color: colors(6),
 	balance: 4
 }];
 
 var links = [{
-	source: "Alice", 
+	source: "Alice",
 	target: "Hub1",
 	sourceBalance: 1,
 	targetBalance: 0
 }, {
-	source: "Hub1", 
+	source: "Hub1",
 	target: "Hub2",
 	sourceBalance: 2,
 	targetBalance: 0
 }, {
-	source: "Hub1", 
+	source: "Hub1",
 	target: "Bob",
 	sourceBalance: 3,
 	targetBalance: 0
 }, {
-	source: "Bob", 
+	source: "Bob",
 	target: "Hub2",
 	sourceBalance: 4,
 	targetBalance: 0
@@ -147,7 +150,7 @@ var beads = [];
 
 links.forEach(function(link) {
 	connections.push({
-		source: nodeById.get(link.source), 
+		source: nodeById.get(link.source),
 		target: nodeById.get(link.target),
 		sourceBalance: link.sourceBalance,
 		targetBalance: link.targetBalance
@@ -245,7 +248,7 @@ function animateBead(bead) {
 	bead.transition()
 		.ease(attr.beadAnimation.ease)
 		.duration(3000)
-		.attrTween("animation-state", function(a) { return function(t) { 
+		.attrTween("animation-state", function(a) { return function(t) {
 			tickedBeads();
 			return t;
 		}})
@@ -263,7 +266,7 @@ function positionBeat() {
 	const path = channel.select('path');
 	const targetBalance = channel.attr("target-balance");
 
-	var startPosition = FIRST_POSITION + (index * SPACING);	
+	var startPosition = FIRST_POSITION + (index * SPACING);
 	var endPosition = FIRST_POSITION + ((targetBalance-(index-1)) * SPACING);
 	var totalLength = path.node().getTotalLength() - startPosition - endPosition;
 
@@ -282,12 +285,12 @@ function dragstarted(d) {
 }
 
 function dragged(d) {
-	d.fx = d3.event.x; 
+	d.fx = d3.event.x;
 	d.fy = d3.event.y;
 }
 
 function dragended(d) {
-	if (!d3.event.active) { 
+	if (!d3.event.active) {
 		simulation
 			.alphaTarget(0);
 	}
@@ -310,3 +313,4 @@ function dragended(d) {
 //         }))
 
 </script>
+</body>
