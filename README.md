@@ -36,3 +36,5 @@ Copyright (C) 2018 [Alexander Wunschik](//github.com/mojoaxel)
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License [along with this program](LICENSE).
+
+**I expect all resulting images and animations to be published under a [CC-BY](https://creativecommons.org/licenses/by/4.0/) license.**
