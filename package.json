@@ -24,6 +24,10 @@
     "name": "Alexander Wunschik",
     "email": "dev@wunschik.net"
   },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/mojoaxel"
+  },
   "license": "AGPL-3.0",
   "bugs": {
     "url": "https://github.com/mojoaxel/beadnet/issues"
